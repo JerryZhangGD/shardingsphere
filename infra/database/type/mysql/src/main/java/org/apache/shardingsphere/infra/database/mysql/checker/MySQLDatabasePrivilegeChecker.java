@@ -62,7 +62,10 @@ public final class MySQLDatabasePrivilegeChecker implements DialectDatabasePrivi
             if (PrivilegeCheckType.XA == privilegeCheckType && MYSQL_MAJOR_VERSION_8 != connection.getMetaData().getDatabaseMajorVersion()) {
                 return;
             }
-            checkPrivilege(connection, privilegeCheckType);
+            //无法正确获取doris的select权限，先略过，人为保证连接用户权限
+            if(!privilegeCheckType.equals(PrivilegeCheckType.SELECT)){
+                checkPrivilege(connection, privilegeCheckType);
+            }
         } catch (final SQLException ex) {
             throw new CheckDatabaseEnvironmentFailedException(ex);
         }

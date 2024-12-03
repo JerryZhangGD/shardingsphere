@@ -21,31 +21,31 @@
 # 
 ######################################################################################################
 
-#mode:
-#  type: Cluster
-#  repository:
-#    type: ZooKeeper
-#    props:
-#      namespace: governance_ds
-#      server-lists: localhost:2181
-#      retryIntervalMilliseconds: 500
-#      timeToLiveSeconds: 60
-#      maxRetries: 3
-#      operationTimeoutMilliseconds: 500
-#
-#authority:
-#  users:
-#    - user: root@%
-#      password: root
-#    - user: sharding
-#      password: sharding
-#  privilege:
-#    type: ALL_PERMITTED
-#
-#transaction:
-#  defaultType: XA
-#  providerType: Atomikos
-#
+mode:
+  type: Cluster
+  repository:
+    type: ZooKeeper
+    props:
+      namespace: governance_ds
+      server-lists: 10.1.7.171:2181
+      retryIntervalMilliseconds: 5000
+      timeToLiveSeconds: 600
+      maxRetries: 10
+      operationTimeoutMilliseconds: 600000
+
+authority:
+  users:
+    - user: root@%
+      password: root
+    - user: sharding
+      password: sharding
+  privilege:
+    type: ALL_PERMITTED
+
+transaction:
+  defaultType: XA
+  providerType: Atomikos
+
 #sqlParser:
 #  sqlStatementCache:
 #    initialCapacity: 2000
@@ -54,13 +54,13 @@
 #    initialCapacity: 128
 #    maximumSize: 1024
 #
-#logging:
-#  loggers:
-#  - loggerName: ShardingSphere-SQL
-#    additivity: true
-#    level: INFO
-#    props:
-#      enable: false
+logging:
+  loggers:
+  - loggerName: ShardingSphere-SQL
+    additivity: true
+    level: DEBUG
+    props:
+      enable: true
 #
 #sqlFederation:
 #  sqlFederationEnabled: false
@@ -68,13 +68,13 @@
 #    initialCapacity: 2000
 #    maximumSize: 65535
 #
-#props:
-#  system-log-level: INFO
+props:
+  system-log-level: DEBUG
 #  max-connections-size-per-query: 1
 #  kernel-executor-size: 16  # Infinite by default.
 #  proxy-frontend-flush-threshold: 128  # The default value is 128.
 #  # sql-show is the same as props in logger ShardingSphere-SQL, and its priority is lower than logging rule
-#  sql-show: false
+#  sql-show: true
 #  check-table-metadata-enabled: false
 #    # Proxy backend query fetch size. A larger value may increase the memory usage of ShardingSphere Proxy.
 #    # The default value is -1, which means set the minimum value for different JDBC drivers.
@@ -87,3 +87,4 @@
 #  proxy-frontend-ssl-enabled: false
 #  proxy-frontend-ssl-cipher: ''
 #  proxy-frontend-ssl-version: TLSv1.2,TLSv1.3
+

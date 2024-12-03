@@ -15,6 +15,32 @@
 # limitations under the License.
 #
 
+databaseName: test_seatunnel
+dataSources:
+  test_seatunnel:
+    url: jdbc:mysql://10.1.7.171:30504/test_seatunnel
+    username: root
+    password: regEWv4Bqe
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+
+rules:
+  - !SINGLE
+    tables:
+      # MySQL 风格
+      #      - ds_0.t_single # 加载指定单表
+      #      - ds_1.* # 加载指定数据源中的全部单表
+      - "*.*" # 加载全部单表
+      # PostgreSQL 风格
+    #      - ds_0.public.t_config
+    #      - ds_1.public.*
+    #      - ds_2.*.*
+    #      - "*.*.*"
+    defaultDataSource: test_seatunnel
+
 ######################################################################################################
 # 
 # Here you can configure the rules for the proxy.
