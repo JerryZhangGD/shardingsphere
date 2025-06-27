@@ -139,6 +139,8 @@ public final class ProxyBackendHandlerFactory {
         if (null == databaseName) {
             return DatabaseBackendHandlerFactory.newInstance(queryContext, connectionSession, preferPreparedStatement);
         }
+        //设置在grantee的风险等级要重新连接以后才会生效，
+        //脱敏开发时，传connnectionSession获取用户，通过用户去AuthorityRule里获取风险等级，从metaData中，直接在 = metaData.getGlobalRuleMetaData().getSingleRule(AuthorityRule.class);
         Grantee grantee = connectionSession.getConnectionContext().getGrantee();
         ShardingSphereMetaData metaData = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData();
         ShardingSphereDatabase database = metaData.getDatabase(databaseName);

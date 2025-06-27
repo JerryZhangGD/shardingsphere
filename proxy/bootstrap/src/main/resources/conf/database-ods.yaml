@@ -1,0 +1,163 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+######################################################################################################
+# 
+# Here you can configure the rules for the proxy.
+# This example is configuration of mask rule.
+# 
+######################################################################################################
+##
+databaseName: ods
+dataSources:
+  ods:
+    url: jdbc:mysql://10.1.7.171:9030/ods
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+
+rules:
+  - !SINGLE
+    tables:
+      # MySQL 风格
+#      - ds_0.t_single # 加载指定单表
+#      - ds_1.* # 加载指定数据源中的全部单表
+      - "*.*" # 加载全部单表
+      # PostgreSQL 风格
+#      - ds_0.public.t_config
+#      - ds_1.public.*
+#      - ds_2.*.*
+#      - "*.*.*"
+    defaultDataSource: ods # 默认数据源，仅在执行 CREATE TABLE 创建单表时有效。缺失值为空，表示随机单播路由。
+
+
+#databaseName: dolphin
+#dataSources:
+#  dolphin:
+#    url: jdbc:postgresql://10.1.7.171:30169/dolphinscheduler
+#    username: root
+#    password: root
+#    connectionTimeoutMilliseconds: 30000
+#    idleTimeoutMilliseconds: 60000
+#    maxLifetimeMilliseconds: 1800000
+#    maxPoolSize: 50
+#    minPoolSize: 1
+#databaseName: mask_db
+#
+#dataSources:
+#  ds_0:
+#    url: jdbc:postgresql://127.0.0.1:5432/demo_ds_0
+#    username: postgres
+#    password: postgres
+#    connectionTimeoutMilliseconds: 30000
+#    idleTimeoutMilliseconds: 60000
+#    maxLifetimeMilliseconds: 1800000
+#    maxPoolSize: 50
+#    minPoolSize: 1
+#  ds_1:
+#    url: jdbc:postgresql://127.0.0.1:5432/demo_ds_1
+#    username: postgres
+#    password: postgres
+#    connectionTimeoutMilliseconds: 30000
+#    idleTimeoutMilliseconds: 60000
+#    maxLifetimeMilliseconds: 1800000
+#    maxPoolSize: 50
+#    minPoolSize: 1
+#
+#rules:
+#- !MASK
+#  tables:
+ #   abc:
+ #     columns:
+ #       asf:
+ #         maskAlgorithm: md5_mask
+  #      asf2:
+  #        maskAlgorithm: mask_before_special_chars_mask
+
+ # maskAlgorithms:
+ #   md5_mask:
+ #     type: MD5
+  #  mask_before_special_chars_mask:
+ #     type: MASK_BEFORE_SPECIAL_CHARS
+  #    props:
+  #      special-chars: '@'
+  #      replace-char: '*'
+  #  keep_first_n_last_m_mask:
+ #     type: KEEP_FIRST_N_LAST_M
+#      props:
+#        first-n: 3
+#        last-m: 4
+#        replace-char: '*'
+
+######################################################################################################
+#
+# If you want to connect to MySQL, you should manually copy MySQL driver to lib directory.
+#
+######################################################################################################
+#
+#databaseName: mask_db
+#
+#dataSources:
+#  ds_0:
+#    url: jdbc:mysql://127.0.0.1:3306/demo_ds_0?useSSL=false
+#    username: root
+#    password:
+#    connectionTimeoutMilliseconds: 30000
+#    idleTimeoutMilliseconds: 60000
+#    maxLifetimeMilliseconds: 1800000
+#    maxPoolSize: 50
+#    minPoolSize: 1
+#  ds_1:
+#    url: jdbc:mysql://127.0.0.1:3306/demo_ds_1?useSSL=false
+#    username: root
+#    password:
+#    connectionTimeoutMilliseconds: 30000
+#    idleTimeoutMilliseconds: 60000
+#    maxLifetimeMilliseconds: 1800000
+#    maxPoolSize: 50
+#    minPoolSize: 1
+#
+#rules:
+#- !MASK
+#  tables:
+#    t_user:
+#      columns:
+#        password:
+#          maskAlgorithm: md5_mask
+#        email:
+#          maskAlgorithm: mask_before_special_chars_mask
+#        telephone:
+#          maskAlgorithm: keep_first_n_last_m_mask
+#
+#  maskAlgorithms:
+#    md5_mask:
+#      type: MD5
+#    mask_before_special_chars_mask:
+#      type: MASK_BEFORE_SPECIAL_CHARS
+#      props:
+#        special-chars: '@'
+#        replace-char: '*'
+#    keep_first_n_last_m_mask:
+#      type: KEEP_FIRST_N_LAST_M
+#      props:
+#        first-n: 3
+#        last-m: 4
+#        replace-char: '*'

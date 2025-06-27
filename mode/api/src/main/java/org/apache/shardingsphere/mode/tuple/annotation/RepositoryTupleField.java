@@ -41,6 +41,6 @@ public @interface RepositoryTupleField {
     @RequiredArgsConstructor
     enum Type {
         
-        ALGORITHM, DEFAULT_ALGORITHM, STRATEGY, DEFAULT_STRATEGY, DATA_SOURCE, TABLE, OTHER
+        ALGORITHM, DEFAULT_ALGORITHM, STRATEGY, DEFAULT_STRATEGY, DATA_SOURCE, TABLE, OTHER, USER, APP,DATABASE
     }
 }

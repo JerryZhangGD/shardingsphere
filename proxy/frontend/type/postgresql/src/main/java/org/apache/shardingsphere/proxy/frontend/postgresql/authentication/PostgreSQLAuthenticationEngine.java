@@ -117,12 +117,12 @@ public final class PostgreSQLAuthenticationEngine implements AuthenticationEngin
         context.write(new PostgreSQLParameterStatusPacket("integer_datetimes", "on"));
         context.write(new PostgreSQLParameterStatusPacket("standard_conforming_strings", "on"));
         context.writeAndFlush(PostgreSQLReadyForQueryPacket.NOT_IN_TRANSACTION);
-        return AuthenticationResultBuilder.finished(currentAuthResult.getUsername(), "", currentAuthResult.getDatabase());
+        return AuthenticationResultBuilder.finished(currentAuthResult.getUsername(), "", currentAuthResult.getDatabase(),currentAuthResult.getLevel());
     }
     
     private void login(final String databaseName, final String username, final byte[] md5Salt, final String digest, final AuthorityRule rule) {
         ShardingSpherePreconditions.checkState(Strings.isNullOrEmpty(databaseName) || ProxyContext.getInstance().databaseExists(databaseName), () -> new UnknownDatabaseException(databaseName));
-        Grantee grantee = new Grantee(username);
+        Grantee grantee = new Grantee(username,1);
         ShardingSphereUser user = rule.findUser(grantee).orElseThrow(() -> new UnknownUsernameException(username));
         ShardingSpherePreconditions.checkState(new AuthenticatorFactory<>(PostgreSQLAuthenticatorType.class, rule).newInstance(user).authenticate(user, new Object[]{digest, md5Salt}),
                 () -> new InvalidPasswordException(username));
@@ -137,12 +137,13 @@ public final class PostgreSQLAuthenticationEngine implements AuthenticationEngin
         String username = startupPacket.getUsername();
         ShardingSpherePreconditions.checkNotEmpty(username, EmptyUsernameException::new);
         context.writeAndFlush(getIdentifierPacket(username, rule));
-        currentAuthResult = AuthenticationResultBuilder.continued(username, "", startupPacket.getDatabase());
+        Optional<Integer> level = rule.findUser(new Grantee(username, "%", 1)).map(ShardingSphereUser::getGrantee).map(Grantee::getLevel);
+        currentAuthResult = AuthenticationResultBuilder.continued(username, "", startupPacket.getDatabase(), level.orElse(1));
         return currentAuthResult;
     }
     
     private PostgreSQLIdentifierPacket getIdentifierPacket(final String username, final AuthorityRule rule) {
-        Optional<Authenticator> authenticator = rule.findUser(new Grantee(username)).map(optional -> new AuthenticatorFactory<>(PostgreSQLAuthenticatorType.class, rule).newInstance(optional));
+        Optional<Authenticator> authenticator = rule.findUser(new Grantee(username,1)).map(optional -> new AuthenticatorFactory<>(PostgreSQLAuthenticatorType.class, rule).newInstance(optional));
         if (authenticator.isPresent() && PostgreSQLAuthenticationMethod.PASSWORD.getMethodName().equals(authenticator.get().getAuthenticationMethodName())) {
             return new PostgreSQLPasswordAuthenticationPacket();
         }

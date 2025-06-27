@@ -40,11 +40,11 @@ public final class ShardingSphereUser {
     }
     
     public ShardingSphereUser(final String username, final String password, final String hostname) {
-        this(username, password, hostname, "", false);
+        this(username, password, hostname, "", false,1);
     }
     
-    public ShardingSphereUser(final String username, final String password, final String hostname, final String authenticationMethodName, final boolean isAdmin) {
-        grantee = new Grantee(username, hostname);
+    public ShardingSphereUser(final String username, final String password, final String hostname, final String authenticationMethodName, final boolean isAdmin,final Integer level) {
+        grantee = new Grantee(username, hostname,level);
         this.password = password;
         this.authenticationMethodName = authenticationMethodName;
         admin = isAdmin;

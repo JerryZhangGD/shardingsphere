@@ -184,7 +184,7 @@ class MySQLAuthenticationEngineTest {
     
     @SneakyThrows(ReflectiveOperationException.class)
     private void setAuthenticationResult() {
-        Plugins.getMemberAccessor().set(MySQLAuthenticationEngine.class.getDeclaredField("currentAuthResult"), authenticationEngine, AuthenticationResultBuilder.continued("root", "", "foo_db"));
+        Plugins.getMemberAccessor().set(MySQLAuthenticationEngine.class.getDeclaredField("currentAuthResult"), authenticationEngine, AuthenticationResultBuilder.continued("root", "", "foo_db",1));
     }
     
     private ShardingSpherePrivileges mockPrivileges() {
@@ -198,7 +198,7 @@ class MySQLAuthenticationEngineTest {
         setConnectionPhase(MySQLConnectionPhase.AUTH_PHASE_FAST_PATH);
         AuthorityRule rule = mock(AuthorityRule.class);
         when(rule.getAuthenticatorType(any())).thenReturn("");
-        when(rule.findUser(new Grantee("root", "127.0.0.1"))).thenReturn(Optional.empty());
+        when(rule.findUser(new Grantee("root", "127.0.0.1",1))).thenReturn(Optional.empty());
         ChannelHandlerContext context = mockChannelHandlerContext();
         ContextManager contextManager = mockContextManager(rule);
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);

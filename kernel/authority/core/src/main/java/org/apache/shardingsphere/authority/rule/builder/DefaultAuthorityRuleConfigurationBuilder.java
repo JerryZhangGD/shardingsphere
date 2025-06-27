@@ -37,7 +37,7 @@ public final class DefaultAuthorityRuleConfigurationBuilder implements DefaultGl
     @Override
     public AuthorityRuleConfiguration build() {
         Collection<UserConfiguration> defaultUserConfigs = new LinkedHashSet<>(
-                Collections.singleton(new UserConfiguration(DefaultUser.USERNAME, DefaultUser.PASSWORD, DefaultUser.HOSTNAME, "", true)));
+                Collections.singleton(new UserConfiguration(DefaultUser.USERNAME, DefaultUser.PASSWORD, DefaultUser.HOSTNAME, "", true,4)));
         AlgorithmConfiguration authorityProviderConfig = new AlgorithmConfiguration("ALL_PERMITTED", new Properties());
         return new AuthorityRuleConfiguration(defaultUserConfigs, authorityProviderConfig, new LinkedHashMap<>(), null);
     }

@@ -15,28 +15,35 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.authority.config;
+package org.apache.shardingsphere.mask.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.apache.shardingsphere.infra.config.rule.function.EnhancedRuleConfiguration;
+import org.apache.shardingsphere.infra.config.rule.scope.DatabaseRuleConfiguration;
 import org.apache.shardingsphere.infra.config.rule.scope.GlobalRuleConfiguration;
+import org.apache.shardingsphere.mask.config.rule.AccessControlUserRuleConfiguration;
+import org.apache.shardingsphere.mask.config.rule.MaskTableRuleConfiguration;
+
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
- * User configuration.
+ * Authority rule configuration.
  */
 @RequiredArgsConstructor
 @Getter
-public final class UserConfiguration implements GlobalRuleConfiguration {
-    
-    private final String username;
-    
-    private final String password;
-    
-    private final String hostname;
-    
-    private final String authenticationMethodName;
-    
-    private final boolean isAdmin;
+@Setter
+public final class AccessControlRuleConfiguration implements DatabaseRuleConfiguration, EnhancedRuleConfiguration {
 
-    private final Integer level;
+
+    private final Collection<AccessControlUserRuleConfiguration> users;
+
+    @Override
+    public boolean isEmpty() {
+        return users.isEmpty();
+    }
 }

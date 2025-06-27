@@ -15,26 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.authority.yaml.config;
+package org.apache.shardingsphere.mask.rule;
 
 import lombok.Getter;
-import lombok.Setter;
-import org.apache.shardingsphere.infra.util.yaml.YamlConfiguration;
+import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.mask.spi.MaskAlgorithm;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * User for YAML.
+ * Mask column.
  */
+@RequiredArgsConstructor
 @Getter
-@Setter
-public final class YamlUserConfiguration implements YamlConfiguration {
-    
-    private String user;
-    
-    private String password;
-    
-    private String authenticationMethodName;
-    
-    private boolean admin;
+public final class AccessControlTable {
 
-    private Integer level;
+    private final Boolean allFlag;
+    private final String name;
+    private final List<String> columns;
 }

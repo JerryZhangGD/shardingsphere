@@ -98,7 +98,7 @@ public final class MySQLAuthenticationEngine implements AuthenticationEngine {
         } else if (MySQLConnectionPhase.AUTHENTICATION_METHOD_MISMATCH == connectionPhase) {
             authenticateMismatchedMethod((MySQLPacketPayload) payload);
         }
-        Grantee grantee = new Grantee(currentAuthResult.getUsername(), getHostAddress(context));
+        Grantee grantee = new Grantee(currentAuthResult.getUsername(), getHostAddress(context),currentAuthResult.getLevel());
         if (!login(rule, grantee, authResponse)) {
             throw new AccessDeniedException(currentAuthResult.getUsername(), grantee.getHostname(), 0 != authResponse.length);
         }
@@ -106,7 +106,7 @@ public final class MySQLAuthenticationEngine implements AuthenticationEngine {
             throw new DatabaseAccessDeniedException(currentAuthResult.getUsername(), grantee.getHostname(), currentAuthResult.getDatabase());
         }
         writeOKPacket(context);
-        return AuthenticationResultBuilder.finished(grantee.getUsername(), grantee.getHostname(), currentAuthResult.getDatabase());
+        return AuthenticationResultBuilder.finished(grantee.getUsername(), grantee.getHostname(), currentAuthResult.getDatabase(),currentAuthResult.getLevel());
     }
     
     private AuthenticationResult authenticatePhaseFastPath(final ChannelHandlerContext context, final PacketPayload payload, final AuthorityRule rule) {
@@ -128,14 +128,15 @@ public final class MySQLAuthenticationEngine implements AuthenticationEngine {
         }
         String username = handshakeResponsePacket.getUsername();
         String hostname = getHostAddress(context);
-        ShardingSphereUser user = rule.findUser(new Grantee(username, hostname)).orElseGet(() -> new ShardingSphereUser(username, "", hostname));
+        ShardingSphereUser user = rule.findUser(new Grantee(username, hostname,1)).orElseGet(() -> new ShardingSphereUser(username, "", hostname));
+        Integer level = user.getGrantee().getLevel();
         Authenticator authenticator = new AuthenticatorFactory<>(MySQLAuthenticatorType.class, rule).newInstance(user);
         if (0 == authResponse.length || isClientPluginAuthenticate(handshakeResponsePacket) && !authenticator.getAuthenticationMethodName().equals(handshakeResponsePacket.getAuthPluginName())) {
             connectionPhase = MySQLConnectionPhase.AUTHENTICATION_METHOD_MISMATCH;
             context.writeAndFlush(new MySQLAuthSwitchRequestPacket(authenticator.getAuthenticationMethodName(), authPluginData));
-            return AuthenticationResultBuilder.continued(username, hostname, database);
+            return AuthenticationResultBuilder.continued(username, hostname, database,level);
         }
-        return AuthenticationResultBuilder.finished(username, hostname, database);
+        return AuthenticationResultBuilder.finished(username, hostname, database,level);
     }
     
     private void setMultiStatementsOption(final ChannelHandlerContext context, final MySQLHandshakeResponse41Packet handshakeResponsePacket) {

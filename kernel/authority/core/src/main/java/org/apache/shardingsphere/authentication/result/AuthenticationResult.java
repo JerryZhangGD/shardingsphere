@@ -34,4 +34,5 @@ public final class AuthenticationResult {
     private final String database;
     
     private final boolean finished;
+    private final Integer level;
 }

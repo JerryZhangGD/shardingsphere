@@ -46,7 +46,7 @@ public final class AuthorityRule implements GlobalRule {
     public AuthorityRule(final AuthorityRuleConfiguration ruleConfig) {
         configuration = ruleConfig;
         Collection<ShardingSphereUser> users = ruleConfig.getUsers().stream()
-                .map(each -> new ShardingSphereUser(each.getUsername(), each.getPassword(), each.getHostname(), each.getAuthenticationMethodName(), each.isAdmin())).collect(Collectors.toList());
+                .map(each -> new ShardingSphereUser(each.getUsername(), each.getPassword(), each.getHostname(), each.getAuthenticationMethodName(), each.isAdmin(),each.getLevel())).collect(Collectors.toList());
         privileges = users.stream().collect(Collectors.toMap(each -> each,
                 each -> TypedSPILoader.getService(PrivilegeProvider.class, ruleConfig.getPrivilegeProvider().getType(), ruleConfig.getPrivilegeProvider().getProps())
                         .build(ruleConfig, each.getGrantee()),

@@ -127,7 +127,7 @@ public final class OpenGaussAuthenticationEngine implements AuthenticationEngine
         context.write(new PostgreSQLParameterStatusPacket("server_encoding", "UTF8"));
         context.write(new PostgreSQLParameterStatusPacket("integer_datetimes", "on"));
         context.writeAndFlush(PostgreSQLReadyForQueryPacket.NOT_IN_TRANSACTION);
-        return AuthenticationResultBuilder.finished(currentAuthResult.getUsername(), "", currentAuthResult.getDatabase());
+        return AuthenticationResultBuilder.finished(currentAuthResult.getUsername(), "", currentAuthResult.getDatabase(), currentAuthResult.getLevel());
     }
     
     private void login(final AuthorityRule rule, final String digest) {
@@ -156,7 +156,9 @@ public final class OpenGaussAuthenticationEngine implements AuthenticationEngine
         String username = startupPacket.getUsername();
         ShardingSpherePreconditions.checkNotEmpty(username, EmptyUsernameException::new);
         context.writeAndFlush(getIdentifierPacket(username, rule, startupPacket.getVersion()));
-        currentAuthResult = AuthenticationResultBuilder.continued(username, "", startupPacket.getDatabase());
+        rule.findUser(new Grantee(username,"%",1));
+        Optional<Integer> level = rule.findUser(new Grantee(username, "%", 1)).map(ShardingSphereUser::getGrantee).map(Grantee::getLevel);
+        currentAuthResult = AuthenticationResultBuilder.continued(username, "", startupPacket.getDatabase(), level.orElse(1));
         return currentAuthResult;
     }
     

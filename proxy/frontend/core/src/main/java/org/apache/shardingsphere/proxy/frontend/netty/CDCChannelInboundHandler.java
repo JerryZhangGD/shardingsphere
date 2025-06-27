@@ -140,7 +140,7 @@ public final class CDCChannelInboundHandler extends ChannelInboundHandlerAdapter
                 () -> new CDCExceptionWrapper(request.getRequestId(), new EmptyCDCLoginRequestBodyException()));
         BasicBody body = request.getLoginRequestBody().getBasicBody();
         AuthorityRule authorityRule = ProxyContext.getInstance().getContextManager().getMetaDataContexts().getMetaData().getGlobalRuleMetaData().getSingleRule(AuthorityRule.class);
-        ShardingSphereUser user = authorityRule.findUser(new Grantee(body.getUsername(), getHostAddress(ctx)))
+        ShardingSphereUser user = authorityRule.findUser(new Grantee(body.getUsername(), getHostAddress(ctx),1))
                 .orElseThrow(() -> new CDCExceptionWrapper(request.getRequestId(), new CDCLoginFailedException()));
         ShardingSpherePreconditions.checkState(Objects.equals(Hashing.sha256().hashBytes(user.getPassword().getBytes()).toString().toUpperCase(), body.getPassword()),
                 () -> new CDCExceptionWrapper(request.getRequestId(), new CDCLoginFailedException()));

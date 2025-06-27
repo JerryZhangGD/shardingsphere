@@ -16,3 +16,4 @@
 #
 
 org.apache.shardingsphere.mask.yaml.swapper.YamlMaskRuleConfigurationSwapper
+org.apache.shardingsphere.mask.yaml.swapper.YamlAccessControlRuleConfigurationSwapper

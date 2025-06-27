@@ -15,12 +15,19 @@
 # limitations under the License.
 #
 
-databaseName: test_seatunnel
+######################################################################################################
+# 
+# Here you can configure the rules for the proxy.
+# This example is configuration of mask rule.
+# 
+######################################################################################################
+##
+databaseName: dim
 dataSources:
-  test_seatunnel:
-    url: jdbc:mysql://10.1.7.171:30504/test_seatunnel
-    username: root
-    password: regEWv4Bqe
+  ods:
+    url: jdbc:mysql://10.1.7.171:9030/dim
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
     connectionTimeoutMilliseconds: 30000
     idleTimeoutMilliseconds: 60000
     maxLifetimeMilliseconds: 1800000
@@ -31,24 +38,29 @@ rules:
   - !SINGLE
     tables:
       # MySQL 风格
-      #      - ds_0.t_single # 加载指定单表
-      #      - ds_1.* # 加载指定数据源中的全部单表
+#      - ds_0.t_single # 加载指定单表
+#      - ds_1.* # 加载指定数据源中的全部单表
       - "*.*" # 加载全部单表
       # PostgreSQL 风格
-    #      - ds_0.public.t_config
-    #      - ds_1.public.*
-    #      - ds_2.*.*
-    #      - "*.*.*"
-    defaultDataSource: test_seatunnel
+#      - ds_0.public.t_config
+#      - ds_1.public.*
+#      - ds_2.*.*
+#      - "*.*.*"
+    defaultDataSource: dim # 默认数据源，仅在执行 CREATE TABLE 创建单表时有效。缺失值为空，表示随机单播路由。
 
-######################################################################################################
-# 
-# Here you can configure the rules for the proxy.
-# This example is configuration of encrypt rule.
-# 
-######################################################################################################
-#
-#databaseName: encrypt_db
+
+#databaseName: dolphin
+#dataSources:
+#  dolphin:
+#    url: jdbc:postgresql://10.1.7.171:30169/dolphinscheduler
+#    username: root
+#    password: root
+#    connectionTimeoutMilliseconds: 30000
+#    idleTimeoutMilliseconds: 60000
+#    maxLifetimeMilliseconds: 1800000
+#    maxPoolSize: 50
+#    minPoolSize: 1
+#databaseName: mask_db
 #
 #dataSources:
 #  ds_0:
@@ -71,24 +83,29 @@ rules:
 #    minPoolSize: 1
 #
 #rules:
-#- !ENCRYPT
-#  encryptors:
-#    aes_encryptor:
-#      type: AES
-#      props:
-#        aes-key-value: 123456abc
-#        digest-algorithm-name: SHA-1
+#- !MASK
 #  tables:
-#    t_encrypt:
-#      columns:
-#        user_id:
-#          cipher:
-#            name: user_cipher
-#            encryptorName: aes_encryptor
-#        order_id:
-#          cipher:
-#            name: order_encrypt
-#            encryptorName: aes_encryptor
+ #   abc:
+ #     columns:
+ #       asf:
+ #         maskAlgorithm: md5_mask
+  #      asf2:
+  #        maskAlgorithm: mask_before_special_chars_mask
+
+ # maskAlgorithms:
+ #   md5_mask:
+ #     type: MD5
+  #  mask_before_special_chars_mask:
+ #     type: MASK_BEFORE_SPECIAL_CHARS
+  #    props:
+  #      special-chars: '@'
+  #      replace-char: '*'
+  #  keep_first_n_last_m_mask:
+ #     type: KEEP_FIRST_N_LAST_M
+#      props:
+#        first-n: 3
+#        last-m: 4
+#        replace-char: '*'
 
 ######################################################################################################
 #
@@ -96,7 +113,7 @@ rules:
 #
 ######################################################################################################
 #
-#databaseName: encrypt_db
+#databaseName: mask_db
 #
 #dataSources:
 #  ds_0:
@@ -119,21 +136,28 @@ rules:
 #    minPoolSize: 1
 #
 #rules:
-#- !ENCRYPT
-#  encryptors:
-#    aes_encryptor:
-#      type: AES
-#      props:
-#        aes-key-value: 123456abc
-#        digest-algorithm-name: SHA-1
+#- !MASK
 #  tables:
-#    t_encrypt:
+#    t_user:
 #      columns:
-#        user_id:
-#          cipher:
-#            name: user_cipher
-#            encryptorName: aes_encryptor
-#        order_id:
-#          cipher:
-#            name: order_encrypt
-#            encryptorName: aes_encryptor
+#        password:
+#          maskAlgorithm: md5_mask
+#        email:
+#          maskAlgorithm: mask_before_special_chars_mask
+#        telephone:
+#          maskAlgorithm: keep_first_n_last_m_mask
+#
+#  maskAlgorithms:
+#    md5_mask:
+#      type: MD5
+#    mask_before_special_chars_mask:
+#      type: MASK_BEFORE_SPECIAL_CHARS
+#      props:
+#        special-chars: '@'
+#        replace-char: '*'
+#    keep_first_n_last_m_mask:
+#      type: KEEP_FIRST_N_LAST_M
+#      props:
+#        first-n: 3
+#        last-m: 4
+#        replace-char: '*'

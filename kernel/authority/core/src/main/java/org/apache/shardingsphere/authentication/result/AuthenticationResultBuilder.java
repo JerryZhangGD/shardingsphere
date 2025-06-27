@@ -34,8 +34,8 @@ public final class AuthenticationResultBuilder {
      * @param database database
      * @return finished authentication result
      */
-    public static AuthenticationResult finished(final String username, final String hostname, final String database) {
-        return new AuthenticationResult(username, hostname, database, true);
+    public static AuthenticationResult finished(final String username, final String hostname, final String database,final Integer level) {
+        return new AuthenticationResult(username, hostname, database, true,level);
     }
     
     /**
@@ -44,7 +44,7 @@ public final class AuthenticationResultBuilder {
      * @return continued authentication result
      */
     public static AuthenticationResult continued() {
-        return new AuthenticationResult(null, null, null, false);
+        return new AuthenticationResult(null, null, null, false,1);
     }
     
     /**
@@ -55,7 +55,7 @@ public final class AuthenticationResultBuilder {
      * @param database database
      * @return continued authentication result
      */
-    public static AuthenticationResult continued(final String username, final String hostname, final String database) {
-        return new AuthenticationResult(username, hostname, database, false);
+    public static AuthenticationResult continued(final String username, final String hostname, final String database,final Integer level) {
+        return new AuthenticationResult(username, hostname, database, false,level);
     }
 }

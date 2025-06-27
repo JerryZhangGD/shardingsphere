@@ -30,16 +30,17 @@ public final class YamlUserSwapper implements YamlConfigurationSwapper<YamlUserC
     @Override
     public YamlUserConfiguration swapToYamlConfiguration(final UserConfiguration data) {
         YamlUserConfiguration result = new YamlUserConfiguration();
-        result.setUser(new Grantee(data.getUsername(), data.getHostname()).toString());
+        result.setUser(new Grantee(data.getUsername(), data.getHostname(), data.getLevel()).toString());
         result.setPassword(data.getPassword());
         result.setAuthenticationMethodName(data.getAuthenticationMethodName());
         result.setAdmin(data.isAdmin());
+        result.setLevel(data.getLevel());
         return result;
     }
     
     @Override
     public UserConfiguration swapToObject(final YamlUserConfiguration yamlConfig) {
-        Grantee grantee = new Grantee(yamlConfig.getUser());
-        return new UserConfiguration(grantee.getUsername(), yamlConfig.getPassword(), grantee.getHostname(), yamlConfig.getAuthenticationMethodName(), yamlConfig.isAdmin());
+        Grantee grantee = new Grantee(yamlConfig.getUser(),yamlConfig.getLevel());
+        return new UserConfiguration(grantee.getUsername(), yamlConfig.getPassword(), grantee.getHostname(), yamlConfig.getAuthenticationMethodName(), yamlConfig.isAdmin(),yamlConfig.getLevel());
     }
 }

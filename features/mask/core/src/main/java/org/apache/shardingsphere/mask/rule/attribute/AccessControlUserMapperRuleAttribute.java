@@ -15,26 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.authority.yaml.config;
+package org.apache.shardingsphere.mask.rule.attribute;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.shardingsphere.infra.util.yaml.YamlConfiguration;
+import com.cedarsoftware.util.CaseInsensitiveSet;
+import org.apache.shardingsphere.infra.rule.attribute.RuleAttribute;
+import org.apache.shardingsphere.infra.rule.attribute.table.TableMapperRuleAttribute;
+
+import java.util.Collection;
+import java.util.Collections;
 
 /**
- * User for YAML.
+ * Mask table mapper rule attribute.
  */
-@Getter
-@Setter
-public final class YamlUserConfiguration implements YamlConfiguration {
-    
-    private String user;
-    
-    private String password;
-    
-    private String authenticationMethodName;
-    
-    private boolean admin;
+public final class AccessControlUserMapperRuleAttribute implements RuleAttribute {
 
-    private Integer level;
+    private final Collection<String> userMapper;
+
+    public AccessControlUserMapperRuleAttribute(final Collection<String> accessControlUserNames) {
+        userMapper = new CaseInsensitiveSet<>(accessControlUserNames);
+    }
+
+    public Collection<String> getuserMapperNames() {
+        return userMapper;
+    }
 }

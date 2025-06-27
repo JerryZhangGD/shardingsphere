@@ -38,16 +38,23 @@ public final class Grantee {
     private final String hostname;
     
     private final boolean isUnlimitedHost;
+
+    private final Integer level;
     
     private final int hashCode;
     
     private final String toString;
-    
+
     public Grantee(final String value) {
-        this(value.contains("@") ? value.substring(0, value.indexOf('@')) : value, value.contains("@") ? value.substring(value.indexOf('@') + 1) : "");
+        this(value,1);
     }
     
-    public Grantee(final String username, final String hostname) {
+    public Grantee(final String value,final Integer level) {
+        this(value.contains("@") ? value.substring(0, value.indexOf('@')) : value, value.contains("@") ? value.substring(value.indexOf('@') + 1) : "",level);
+    }
+    
+    public Grantee(final String username, final String hostname,final Integer level) {
+        this.level = level;
         this.username = username;
         this.hostname = Strings.isNullOrEmpty(hostname) ? HOST_WILDCARD : hostname;
         isUnlimitedHost = HOST_WILDCARD.equals(this.hostname);
@@ -87,5 +94,9 @@ public final class Grantee {
     @Override
     public String toString() {
         return toString;
+    }
+
+    public Integer getLevel(){
+        return level;
     }
 }

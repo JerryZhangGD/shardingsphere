@@ -16,3 +16,4 @@
 #
 
 org.apache.shardingsphere.mask.rule.builder.MaskRuleBuilder
+org.apache.shardingsphere.mask.rule.builder.AccessControlRuleBuilder

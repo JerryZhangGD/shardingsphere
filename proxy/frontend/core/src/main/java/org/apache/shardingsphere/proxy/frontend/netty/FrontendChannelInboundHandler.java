@@ -76,7 +76,7 @@ public final class FrontendChannelInboundHandler extends ChannelInboundHandlerAd
             AuthenticationResult authResult = databaseProtocolFrontendEngine.getAuthenticationEngine().authenticate(context,
                     databaseProtocolFrontendEngine.getCodecEngine().createPacketPayload(message, context.channel().attr(CommonConstants.CHARSET_ATTRIBUTE_KEY).get()));
             if (authResult.isFinished()) {
-                connectionSession.setGrantee(new Grantee(authResult.getUsername(), authResult.getHostname()));
+                connectionSession.setGrantee(new Grantee(authResult.getUsername(), authResult.getHostname(),authResult.getLevel()));
                 connectionSession.setCurrentDatabaseName(authResult.getDatabase());
                 connectionSession.setProcessId(processEngine.connect(connectionSession.getUsedDatabaseName(), connectionSession.getConnectionContext().getGrantee()));
             }
