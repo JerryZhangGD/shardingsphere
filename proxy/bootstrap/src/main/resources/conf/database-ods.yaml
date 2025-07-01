@@ -33,7 +33,42 @@ dataSources:
     maxLifetimeMilliseconds: 1800000
     maxPoolSize: 50
     minPoolSize: 1
-
+  dwd:
+    url: jdbc:mysql://10.1.7.171:9030/dwd
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  dws:
+    url: jdbc:mysql://10.1.7.171:9030/dws
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  ads:
+    url: jdbc:mysql://10.1.7.171:9030/ads
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  dim:
+    url: jdbc:mysql://10.1.7.171:9030/dim
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
 rules:
   - !SINGLE
     tables:
@@ -47,7 +82,24 @@ rules:
 #      - ds_2.*.*
 #      - "*.*.*"
     defaultDataSource: ods # 默认数据源，仅在执行 CREATE TABLE 创建单表时有效。缺失值为空，表示随机单播路由。
-
+  - !ACCESS_CONTROL
+    users:
+      root:
+        tables:
+          DWD_11:
+            tableName: DWD_11
+            allFlag: true
+            columns:
+              - UPDATEUSER
+              - UPDATETIME
+          DWD_12_312312312:
+            tableName: DWD_12_312312312
+            allFlag: false
+            columns:
+              - DYGX
+              - CS
+        name: root
+        allFlag: false
 
 #databaseName: dolphin
 #dataSources:

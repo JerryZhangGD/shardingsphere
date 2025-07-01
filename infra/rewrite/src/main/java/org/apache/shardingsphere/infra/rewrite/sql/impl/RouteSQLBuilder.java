@@ -21,6 +21,7 @@ import org.apache.shardingsphere.infra.rewrite.sql.token.common.pojo.RouteUnitAw
 import org.apache.shardingsphere.infra.rewrite.sql.token.common.pojo.SQLToken;
 import org.apache.shardingsphere.infra.route.context.RouteUnit;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,7 +32,9 @@ public final class RouteSQLBuilder extends AbstractSQLBuilder {
     private final RouteUnit routeUnit;
     
     public RouteSQLBuilder(final String sql, final List<SQLToken> sqlTokens, final RouteUnit routeUnit) {
-        super(sql, sqlTokens);
+        //todo 删除sqlTokens替换，直接使用原始sql，为了代理，如果是分库分表其它功能会报错
+        super(sql,new ArrayList<>());
+        //super(sql, sqlTokens);
         this.routeUnit = routeUnit;
     }
     

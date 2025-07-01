@@ -40,7 +40,10 @@ authority:
     - user: sharding
       password: sharding
   privilege:
-    type: ALL_PERMITTED
+    type: DATABASE_PERMITTED
+    props:
+      user-database-mappings: root@%=ods,root@%=dwd,root@%=dws,root@%=ads,root@%=dim,sharding@%=ods, sharding@%=dwd
+
 
 transaction:
   defaultType: XA
@@ -61,13 +64,15 @@ logging:
     level: DEBUG
     props:
       enable: true
-#
-#sqlFederation:
-#  sqlFederationEnabled: false
-#  executionPlanCache:
-#    initialCapacity: 2000
-#    maximumSize: 65535
-#
+
+
+sqlFederation:
+  sqlFederationEnabled: false
+  allQueryUseSQLFederation: false
+  executionPlanCache:
+    initialCapacity: 2000
+    maximumSize: 65535
+
 props:
   system-log-level: DEBUG
 #  max-connections-size-per-query: 1

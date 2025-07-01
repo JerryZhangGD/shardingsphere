@@ -25,6 +25,42 @@
 databaseName: dim
 dataSources:
   ods:
+    url: jdbc:mysql://10.1.7.171:9030/ods
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  dwd:
+    url: jdbc:mysql://10.1.7.171:9030/dwd
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  dws:
+    url: jdbc:mysql://10.1.7.171:9030/dws
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  ads:
+    url: jdbc:mysql://10.1.7.171:9030/ads
+    username: dbgatewayread
+    password: dbgatewayread@passwordsit
+    connectionTimeoutMilliseconds: 30000
+    idleTimeoutMilliseconds: 60000
+    maxLifetimeMilliseconds: 1800000
+    maxPoolSize: 50
+    minPoolSize: 1
+  dim:
     url: jdbc:mysql://10.1.7.171:9030/dim
     username: dbgatewayread
     password: dbgatewayread@passwordsit
@@ -33,7 +69,6 @@ dataSources:
     maxLifetimeMilliseconds: 1800000
     maxPoolSize: 50
     minPoolSize: 1
-
 rules:
   - !SINGLE
     tables:
