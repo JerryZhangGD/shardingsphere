@@ -16,3 +16,4 @@
 #
 
 org.apache.shardingsphere.authority.checker.AuthoritySQLExecutionChecker
+org.apache.shardingsphere.authority.checker.AccessControlExecutionChecker

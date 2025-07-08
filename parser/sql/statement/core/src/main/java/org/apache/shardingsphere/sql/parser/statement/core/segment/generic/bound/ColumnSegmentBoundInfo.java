@@ -18,24 +18,48 @@
 package org.apache.shardingsphere.sql.parser.statement.core.segment.generic.bound;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
 
 /**
  * Column segment bound info.
  */
-@RequiredArgsConstructor
 @Getter
 public final class ColumnSegmentBoundInfo {
     
-    private final IdentifierValue originalDatabase;
+    private IdentifierValue originalDatabase;
     
-    private final IdentifierValue originalSchema;
+    private IdentifierValue originalSchema;
     
-    private final IdentifierValue originalTable;
+    private IdentifierValue originalTable;
     
-    private final IdentifierValue originalColumn;
-    
+    private IdentifierValue originalColumn;
+
+    private Integer sensitiveLevel;
+
+    public ColumnSegmentBoundInfo(IdentifierValue originalDatabase, IdentifierValue originalSchema, IdentifierValue originalTable, IdentifierValue originalColumn) {
+        this.originalDatabase = originalDatabase;
+        this.originalSchema = originalSchema;
+        this.originalTable = originalTable;
+        this.originalColumn = originalColumn;
+        if(StringUtils.isNotEmpty(originalDatabase.getValue())&&StringUtils.isNotEmpty(originalTable.getValue())&&StringUtils.isNotEmpty(originalColumn.getValue())){
+            //todo 这里匹配设置敏感等级
+
+            //默认敏感2级
+            this.sensitiveLevel = 1;
+        }else {
+            this.sensitiveLevel = 2;
+        }
+    }
+
+    public ColumnSegmentBoundInfo(IdentifierValue originalDatabase, IdentifierValue originalSchema, IdentifierValue originalTable, IdentifierValue originalColumn, Integer sensitiveLevel) {
+        this.originalDatabase = originalDatabase;
+        this.originalSchema = originalSchema;
+        this.originalTable = originalTable;
+        this.originalColumn = originalColumn;
+        this.sensitiveLevel = sensitiveLevel;
+    }
+
     public ColumnSegmentBoundInfo(final IdentifierValue originalColumn) {
         originalDatabase = new IdentifierValue("");
         originalSchema = new IdentifierValue("");
