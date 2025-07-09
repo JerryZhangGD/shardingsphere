@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mask.yaml.config;
+package org.apache.shardingsphere.authority.yaml.config;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.shardingsphere.authority.rule.AccessControlRuleConfiguration;
+import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlUserRuleConfiguration;
 import org.apache.shardingsphere.infra.yaml.config.pojo.rule.YamlRuleConfiguration;
-import org.apache.shardingsphere.mask.config.AccessControlRuleConfiguration;
-import org.apache.shardingsphere.mask.yaml.config.rule.YamlAccessControlUserRuleConfiguration;
 import org.apache.shardingsphere.mode.tuple.annotation.RepositoryTupleEntity;
 import org.apache.shardingsphere.mode.tuple.annotation.RepositoryTupleField;
 

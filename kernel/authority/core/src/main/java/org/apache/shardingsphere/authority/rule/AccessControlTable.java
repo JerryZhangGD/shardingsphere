@@ -15,27 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mask.rule.attribute;
+package org.apache.shardingsphere.authority.rule;
 
-import com.cedarsoftware.util.CaseInsensitiveSet;
-import org.apache.shardingsphere.infra.rule.attribute.RuleAttribute;
-import org.apache.shardingsphere.infra.rule.attribute.table.TableMapperRuleAttribute;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 /**
- * Mask table mapper rule attribute.
+ * Mask column.
  */
-public final class AccessControlUserMapperRuleAttribute implements RuleAttribute {
+@RequiredArgsConstructor
+@Getter
+public final class AccessControlTable {
 
-    private final Collection<String> userMapper;
-
-    public AccessControlUserMapperRuleAttribute(final Collection<String> accessControlUserNames) {
-        userMapper = new CaseInsensitiveSet<>(accessControlUserNames);
-    }
-
-    public Collection<String> getuserMapperNames() {
-        return userMapper;
-    }
+    private final Boolean allFlag;
+    private final String name;
+    private final List<String> columns;
 }

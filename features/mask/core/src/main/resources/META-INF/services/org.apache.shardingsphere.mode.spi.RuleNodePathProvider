@@ -16,4 +16,4 @@
 #
 
 org.apache.shardingsphere.mask.metadata.nodepath.MaskRuleNodePathProvider
-org.apache.shardingsphere.mask.metadata.nodepath.AccessControlRuleNodePathProvider
+org.apache.shardingsphere.authority.metadata.nodepath.AccessControlRuleNodePathProvider

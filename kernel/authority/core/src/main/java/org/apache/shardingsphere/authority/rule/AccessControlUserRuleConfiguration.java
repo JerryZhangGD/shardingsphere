@@ -1,4 +1,4 @@
-package org.apache.shardingsphere.mask.config.rule;
+package org.apache.shardingsphere.authority.rule;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,8 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @AllArgsConstructor

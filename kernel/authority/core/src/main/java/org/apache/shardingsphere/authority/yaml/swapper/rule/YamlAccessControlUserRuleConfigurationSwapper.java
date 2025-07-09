@@ -15,23 +15,20 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mask.yaml.swapper.rule;
+package org.apache.shardingsphere.authority.yaml.swapper.rule;
 
-import org.apache.shardingsphere.infra.util.yaml.swapper.YamlConfigurationSwapper;
-import org.apache.shardingsphere.mask.config.rule.AccessControlTableRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.AccessControlUserRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.MaskColumnRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.MaskTableRuleConfiguration;
-import org.apache.shardingsphere.mask.yaml.config.rule.YamlAccessControlTableRuleConfiguration;
-import org.apache.shardingsphere.mask.yaml.config.rule.YamlAccessControlUserRuleConfiguration;
-import org.apache.shardingsphere.mask.yaml.config.rule.YamlMaskColumnRuleConfiguration;
-import org.apache.shardingsphere.mask.yaml.config.rule.YamlMaskTableRuleConfiguration;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.apache.shardingsphere.authority.rule.AccessControlTableRuleConfiguration;
+import org.apache.shardingsphere.authority.rule.AccessControlUserRuleConfiguration;
+import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlTableRuleConfiguration;
+import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlUserRuleConfiguration;
+import org.apache.shardingsphere.infra.util.yaml.swapper.YamlConfigurationSwapper;
 
 /**
  * YAML mask table rule configuration swapper.

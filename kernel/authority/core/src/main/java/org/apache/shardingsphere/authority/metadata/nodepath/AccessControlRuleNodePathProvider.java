@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mask.metadata.nodepath;
+package org.apache.shardingsphere.authority.metadata.nodepath;
 
-import org.apache.shardingsphere.mask.config.AccessControlRuleConfiguration;
+
+import org.apache.shardingsphere.authority.rule.AccessControlRuleConfiguration;
 import org.apache.shardingsphere.infra.config.rule.RuleConfiguration;
 import org.apache.shardingsphere.mode.path.rule.RuleNodePath;
 import org.apache.shardingsphere.mode.spi.RuleNodePathProvider;

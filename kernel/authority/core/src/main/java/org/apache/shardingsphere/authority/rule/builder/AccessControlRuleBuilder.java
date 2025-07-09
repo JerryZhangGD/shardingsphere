@@ -15,18 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mask.rule.builder;
+package org.apache.shardingsphere.authority.rule.builder;
 
+import org.apache.shardingsphere.authority.rule.AccessControlRule;
 import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 import org.apache.shardingsphere.infra.instance.ComputeNodeInstanceContext;
 import org.apache.shardingsphere.infra.metadata.database.resource.ResourceMetaData;
 import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
+import org.apache.shardingsphere.authority.rule.AccessControlRuleConfiguration;
 import org.apache.shardingsphere.infra.rule.builder.database.DatabaseRuleBuilder;
-import org.apache.shardingsphere.mask.config.AccessControlRuleConfiguration;
-import org.apache.shardingsphere.mask.config.MaskRuleConfiguration;
-import org.apache.shardingsphere.mask.constant.MaskOrder;
-import org.apache.shardingsphere.mask.rule.AccessControlRule;
-import org.apache.shardingsphere.mask.rule.MaskRule;
 
 import java.util.Collection;
 

@@ -15,26 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mask.rule;
+package org.apache.shardingsphere.authority.rule;
 
 import com.cedarsoftware.util.CaseInsensitiveMap;
-import org.apache.shardingsphere.infra.annotation.HighFrequencyInvocation;
-import org.apache.shardingsphere.mask.config.AccessControlRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.AccessControlTableRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.AccessControlUserRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.MaskColumnRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.MaskTableRuleConfiguration;
-import org.apache.shardingsphere.mask.spi.MaskAlgorithm;
+import lombok.Data;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * Mask table.
  */
+@Data
 public final class AccessControlUser {
 
     private final Boolean allFlag;

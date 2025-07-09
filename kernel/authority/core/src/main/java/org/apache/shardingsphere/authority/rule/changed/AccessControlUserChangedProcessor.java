@@ -15,24 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mask.rule.changed;
+package org.apache.shardingsphere.authority.rule.changed;
 
+import org.apache.shardingsphere.authority.rule.AccessControlRuleConfiguration;
+import org.apache.shardingsphere.authority.rule.AccessControlUserRuleConfiguration;
+import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlUserRuleConfiguration;
+import org.apache.shardingsphere.authority.metadata.nodepath.AccessControlRuleNodePathProvider;
+import org.apache.shardingsphere.authority.rule.AccessControlRule;
+import org.apache.shardingsphere.authority.yaml.swapper.rule.YamlAccessControlUserRuleConfigurationSwapper;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.util.yaml.YamlEngine;
-import org.apache.shardingsphere.mask.config.AccessControlRuleConfiguration;
-import org.apache.shardingsphere.mask.config.MaskRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.AccessControlUserRuleConfiguration;
-import org.apache.shardingsphere.mask.metadata.nodepath.AccessControlRuleNodePathProvider;
-import org.apache.shardingsphere.mask.rule.AccessControlRule;
-import org.apache.shardingsphere.mask.rule.MaskRule;
-import org.apache.shardingsphere.mask.yaml.config.rule.YamlAccessControlUserRuleConfiguration;
-import org.apache.shardingsphere.mask.yaml.swapper.rule.YamlAccessControlUserRuleConfigurationSwapper;
 import org.apache.shardingsphere.mode.event.dispatch.rule.alter.AlterRuleItemEvent;
 import org.apache.shardingsphere.mode.event.dispatch.rule.drop.DropNamedRuleItemEvent;
 import org.apache.shardingsphere.mode.event.dispatch.rule.drop.DropRuleItemEvent;
 import org.apache.shardingsphere.mode.spi.RuleItemConfigurationChangedProcessor;
 
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 /**

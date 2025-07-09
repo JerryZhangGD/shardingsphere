@@ -15,21 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.shardingsphere.mask.config;
+package org.apache.shardingsphere.authority.rule;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.config.rule.function.EnhancedRuleConfiguration;
 import org.apache.shardingsphere.infra.config.rule.scope.DatabaseRuleConfiguration;
-import org.apache.shardingsphere.infra.config.rule.scope.GlobalRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.AccessControlUserRuleConfiguration;
-import org.apache.shardingsphere.mask.config.rule.MaskTableRuleConfiguration;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Authority rule configuration.
