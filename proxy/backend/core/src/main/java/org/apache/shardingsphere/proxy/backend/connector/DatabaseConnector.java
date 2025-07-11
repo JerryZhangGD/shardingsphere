@@ -83,6 +83,7 @@ import org.apache.shardingsphere.transaction.api.TransactionType;
 import org.apache.shardingsphere.transaction.implicit.ImplicitTransactionCallback;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -415,6 +416,16 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
                         case Types.NUMERIC:
                         case Types.BIGINT: {
                             data = 0;
+                            break;
+                        }
+                        case Types.DATE:{
+                            Date date = new Date(0);
+                            data = date;
+                            break;
+                        }
+                        case Types.TIMESTAMP:{
+                            LocalDateTime localDateTime = LocalDateTime.of(1970,1,1,0,0);
+                            data = localDateTime;
                             break;
                         }
                     }
