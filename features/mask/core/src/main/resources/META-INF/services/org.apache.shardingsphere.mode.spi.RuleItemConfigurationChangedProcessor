@@ -18,3 +18,4 @@
 org.apache.shardingsphere.mask.rule.changed.MaskTableChangedProcessor
 org.apache.shardingsphere.mask.rule.changed.MaskAlgorithmChangedProcessor
 org.apache.shardingsphere.authority.rule.changed.AccessControlUserChangedProcessor
+org.apache.shardingsphere.authority.rule.changed.SensitiveLevelTableChangedProcessor

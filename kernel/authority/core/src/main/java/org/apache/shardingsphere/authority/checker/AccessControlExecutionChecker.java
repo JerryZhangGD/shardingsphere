@@ -18,19 +18,11 @@
 package org.apache.shardingsphere.authority.checker;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.shardingsphere.authority.checker.AuthorityChecker;
-import org.apache.shardingsphere.authority.rule.AccessControlRule;
-import org.apache.shardingsphere.authority.rule.AccessControlTable;
-import org.apache.shardingsphere.authority.rule.AccessControlUser;
-import org.apache.shardingsphere.authority.rule.AuthorityRule;
+import org.apache.shardingsphere.authority.rule.*;
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.Projection;
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.ProjectionsContext;
-import org.apache.shardingsphere.infra.binder.context.segment.select.projection.impl.ColumnProjection;
-import org.apache.shardingsphere.infra.binder.context.segment.table.TablesContext;
 import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
 import org.apache.shardingsphere.infra.binder.context.statement.dml.SelectStatementContext;
-import org.apache.shardingsphere.infra.exception.core.ShardingSpherePreconditions;
-import org.apache.shardingsphere.infra.exception.dialect.exception.syntax.database.UnknownDatabaseException;
 import org.apache.shardingsphere.infra.exception.kernel.metadata.HasNotAccessRightException;
 import org.apache.shardingsphere.infra.executor.checker.SQLExecutionChecker;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
@@ -47,7 +39,6 @@ import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.simp
 import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.expr.subquery.SubquerySegment;
 import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.*;
 import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.join.OuterJoinExpression;
-import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.CommentSegment;
 import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.match.MatchAgainstExpression;
 import org.apache.shardingsphere.sql.parser.statement.core.segment.generic.table.*;
 import org.apache.shardingsphere.sql.parser.statement.core.statement.dml.SelectStatement;
@@ -64,85 +55,124 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
     @Override
     public void check(final ShardingSphereMetaData metaData, final Grantee grantee, final QueryContext queryContext, final ShardingSphereDatabase database) {
         Optional<ShardingSphereUser> user = metaData.getGlobalRuleMetaData().findSingleRule(AuthorityRule.class).get().findUser(grantee);
-        Map<String, Map<String, List<String>>> accessMap = getAccessMapFromQueryContext(queryContext);
-        if(accessMap!=null&&!accessMap.isEmpty()){
-            List<ShardingSphereDatabase> shardingSphereDatabaseList = new ArrayList<>();
-            accessMap.entrySet().forEach(entry ->{
-                String databaseName = entry.getKey();
-                ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase(databaseName);
-                if(shardingSphereDatabase==null){
-                    throw new HasNotAccessRightException(databaseName);
-                }else{
-                    shardingSphereDatabaseList.add(shardingSphereDatabase);
-                    Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
-                    if(!singleRule.isPresent()){
+        if(user.isPresent()){
+            Integer userLevel = 1;
+            Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap = new HashMap<>();
+            Integer level = user.get().getGrantee().getLevel();
+            String username = user.get().getGrantee().getUsername();
+            if(level!=null){
+                userLevel = level;
+            }
+            metaData.getDatabases().entrySet().forEach(entry -> {
+                ShardingSphereDatabase sphereDatabase = entry.getValue();
+                Optional<SensitiveLevelRule> sensitiveLevelRule = sphereDatabase.getRuleMetaData().findSingleRule(SensitiveLevelRule.class);
+                if(sensitiveLevelRule.isPresent()){
+                    Map<String, Map<String, Integer>> stringMapMap = sensitiveLevelMap.get(entry.getKey());
+                    if(stringMapMap==null){
+                        stringMapMap = new HashMap<>();
+                    }
+                    Collection<SensitiveLevelTableConfiguration> tables = sensitiveLevelRule.get().getConfiguration().getTables();
+                    if(tables!=null&&!tables.isEmpty()){
+                        for(SensitiveLevelTableConfiguration sensitiveLevelTableConfiguration:tables){
+                            Map<String, Integer> columnMapSensitiveLevel = stringMapMap.get(sensitiveLevelTableConfiguration.getName());
+                            if(columnMapSensitiveLevel==null){
+                                columnMapSensitiveLevel = new HashMap<>();
+                            }
+                            Collection<SensitiveLevelColumnConfiguration> columns = sensitiveLevelTableConfiguration.getColumns();
+                            if(columns!=null&&!columns.isEmpty()){
+                                for(SensitiveLevelColumnConfiguration sensitiveLevelColumnConfiguration:columns){
+                                    columnMapSensitiveLevel.put(sensitiveLevelColumnConfiguration.getName(),sensitiveLevelColumnConfiguration.getSensitiveLevel());
+                                }
+                            }
+                            stringMapMap.put(sensitiveLevelTableConfiguration.getName(), columnMapSensitiveLevel);
+                        }
+                    }
+
+                    sensitiveLevelMap.put(entry.getKey(),stringMapMap);
+                }
+            });
+
+
+            Map<String, Map<String, List<String>>> accessMap = getAccessMapFromQueryContext(username,metaData,queryContext,userLevel,sensitiveLevelMap);
+            if(accessMap!=null&&!accessMap.isEmpty()){
+                List<ShardingSphereDatabase> shardingSphereDatabaseList = new ArrayList<>();
+                accessMap.entrySet().forEach(entry ->{
+                    String databaseName = entry.getKey();
+                    ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase(databaseName);
+                    if(shardingSphereDatabase==null){
                         throw new HasNotAccessRightException(databaseName);
-                    }else {
-                        Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(user.get().getGrantee().getUsername());
-                        if(!accessControlUser.isPresent()){
+                    }else{
+                        shardingSphereDatabaseList.add(shardingSphereDatabase);
+                        Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+                        if(!singleRule.isPresent()){
                             throw new HasNotAccessRightException(databaseName);
                         }else {
-                            AccessControlUser accessControlUser1 = accessControlUser.get();
-                            if(!accessControlUser1.getAllFlag()){
-                                Map<String, List<String>> tableMapColumnList = entry.getValue();
-                                Map<String, AccessControlTable> tables = accessControlUser1.getTables();
-                                List<String> wantToAccessTableNameList = tableMapColumnList.keySet().stream().collect(Collectors.toList());
-                                List<String> hasRightTableNameList = tables.keySet().stream().map(tableName->tableName.toLowerCase()).collect(Collectors.toList());
-                                if(wantToAccessTableNameList!=null&&!wantToAccessTableNameList.isEmpty()){
-                                    if(hasRightTableNameList==null&&hasRightTableNameList.isEmpty()){
-                                        throw new HasNotAccessRightException(databaseName,wantToAccessTableNameList);
-                                    }
-                                    List<String> hasNotRightTableNameList = new ArrayList<>();
-                                    wantToAccessTableNameList.forEach(tableName->{
-                                        if(!hasRightTableNameList.contains(tableName.toLowerCase())){
-                                            hasNotRightTableNameList.add(tableName);
+                            Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(user.get().getGrantee().getUsername());
+                            if(!accessControlUser.isPresent()){
+                                throw new HasNotAccessRightException(databaseName);
+                            }else {
+                                AccessControlUser accessControlUser1 = accessControlUser.get();
+                                if(!accessControlUser1.getAllFlag()){
+                                    Map<String, List<String>> tableMapColumnList = entry.getValue();
+                                    Map<String, AccessControlTable> tables = accessControlUser1.getTables();
+                                    List<String> wantToAccessTableNameList = tableMapColumnList.keySet().stream().collect(Collectors.toList());
+                                    List<String> hasRightTableNameList = tables.keySet().stream().map(tableName->tableName.toLowerCase()).collect(Collectors.toList());
+                                    if(wantToAccessTableNameList!=null&&!wantToAccessTableNameList.isEmpty()){
+                                        if(hasRightTableNameList==null&&hasRightTableNameList.isEmpty()){
+                                            throw new HasNotAccessRightException(databaseName,wantToAccessTableNameList);
                                         }
-                                    });
-                                    if(!hasNotRightTableNameList.isEmpty()){
-                                        throw new HasNotAccessRightException(databaseName,hasNotRightTableNameList);
-                                    }
-                                    tableMapColumnList.entrySet().forEach(entry1->{
-                                        String tableName = entry1.getKey();
-                                        AccessControlTable accessControlTable = tables.get(tableName);
-                                        if(accessControlTable==null){
-                                            throw new HasNotAccessRightException(databaseName, Collections.singletonList(tableName));
-                                        }else if(!accessControlTable.getAllFlag()){
-                                            List<String> hasRightColumnList = accessControlTable.getColumns();
-                                            List<String> wantAccessColumnList = tableMapColumnList.get(tableName);
-                                            if(wantAccessColumnList!=null||!wantAccessColumnList.isEmpty()){
-                                                if(hasRightColumnList==null||hasRightColumnList.isEmpty()){
-                                                    throw new HasNotAccessRightException(databaseName,tableName,wantAccessColumnList);
-                                                }
-                                                List<String> collect = hasRightColumnList.stream().map(columnName -> columnName.toLowerCase()).collect(Collectors.toList());
-                                                List<String> hasNotAccessConlumnList = new ArrayList<>();
-                                                wantAccessColumnList.forEach(columnName->{
-                                                    if(!collect.contains(columnName.toLowerCase())){
-                                                        hasNotAccessConlumnList.add(columnName);
+                                        List<String> hasNotRightTableNameList = new ArrayList<>();
+                                        wantToAccessTableNameList.forEach(tableName->{
+                                            if(!hasRightTableNameList.contains(tableName.toLowerCase())){
+                                                hasNotRightTableNameList.add(tableName);
+                                            }
+                                        });
+                                        if(!hasNotRightTableNameList.isEmpty()){
+                                            throw new HasNotAccessRightException(databaseName,hasNotRightTableNameList);
+                                        }
+                                        tableMapColumnList.entrySet().forEach(entry1->{
+                                            String tableName = entry1.getKey();
+                                            AccessControlTable accessControlTable = tables.get(tableName);
+                                            if(accessControlTable==null){
+                                                throw new HasNotAccessRightException(databaseName, Collections.singletonList(tableName));
+                                            }else if(!accessControlTable.getAllFlag()){
+                                                List<String> hasRightColumnList = accessControlTable.getColumns().keySet().stream().collect(Collectors.toList());
+                                                List<String> wantAccessColumnList = tableMapColumnList.get(tableName);
+                                                if(wantAccessColumnList!=null||!wantAccessColumnList.isEmpty()){
+                                                    if(hasRightColumnList==null||hasRightColumnList.isEmpty()){
+                                                        throw new HasNotAccessRightException(databaseName,tableName,wantAccessColumnList);
                                                     }
-                                                });
-                                                if(!hasNotAccessConlumnList.isEmpty()){
-                                                    throw new HasNotAccessRightException(databaseName,tableName,hasNotAccessConlumnList);
+                                                    List<String> collect = hasRightColumnList.stream().map(columnName -> columnName.toLowerCase()).collect(Collectors.toList());
+                                                    List<String> hasNotAccessConlumnList = new ArrayList<>();
+                                                    wantAccessColumnList.forEach(columnName->{
+                                                        if(!collect.contains(columnName.toLowerCase())){
+                                                            hasNotAccessConlumnList.add(columnName);
+                                                        }
+                                                    });
+                                                    if(!hasNotAccessConlumnList.isEmpty()){
+                                                        throw new HasNotAccessRightException(databaseName,tableName,hasNotAccessConlumnList);
+                                                    }
                                                 }
                                             }
-                                        }
-                                    });
+                                        });
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-            });
+                });
+            }
         }
     }
 
-    private static Map<String, Map<String, List<String>>> getAccessMapFromQueryContext(QueryContext queryContext) {
+    private static Map<String, Map<String, List<String>>> getAccessMapFromQueryContext(String username, ShardingSphereMetaData metaData, QueryContext queryContext, Integer userLevel, Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap) {
         Map<String,Map<String,List<String>>> accessMap=new HashMap<>();
 
         SQLStatementContext sqlStatementContext = queryContext.getSqlStatementContext();
         if(sqlStatementContext instanceof SelectStatementContext){//目前只支持查询语句
             SelectStatementContext selectStatementContext = (SelectStatementContext) sqlStatementContext;
-            fillAccessMap(selectStatementContext,accessMap);
+            fillAccessMap(username,metaData,selectStatementContext,accessMap,userLevel,sensitiveLevelMap);
             /*SelectStatement sqlStatement = selectStatementContext.getSqlStatement();
             TablesContext tablesContext = selectStatementContext.getTablesContext();
             tablesContext.getSimpleTables().forEach(simpleTableSegment -> {
@@ -167,24 +197,32 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         return accessMap;
     }
 
-    private static void fillAccessMap(SelectStatementContext selectStatementContext, Map<String, Map<String, List<String>>> accessMap) {
+    private static void fillAccessMap(String username, ShardingSphereMetaData metaData, SelectStatementContext selectStatementContext, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap) {
+        Map<String, Projection> columnLabelMapProjection = selectStatementContext.getProjectionsContext().getExpandProjections().stream().collect(Collectors.toMap(Projection::getColumnLabel, v -> v, (v1, v2) -> v2));
+        ProjectionsContext projectionsContext = selectStatementContext.getProjectionsContext();
+
+
         SelectStatement sqlStatement = selectStatementContext.getSqlStatement();
         Optional<TableSegment> from = sqlStatement.getFrom();
         List<ProjectionSegment> projectionSegments = findAllProjectionSegments(sqlStatement);
         projectionSegments.forEach(projectionSegment -> {
+            String columnLabel1 = projectionSegment.getColumnLabel();
+            Projection projection = columnLabelMapProjection.get(columnLabel1);
             List<ColumnSegment> columnSegmentList=getColumnSegmentListByProjectionSegment(projectionSegment);
             columnSegmentList.forEach(columnSegment -> {
-                fillAccessMapBySimpleTableSegmentMap(columnSegment,from,accessMap);
+                fillAccessMapBySimpleTableSegmentMap(username,metaData,projection,columnSegment,from,accessMap,userLevel,sensitiveLevelMap);
             });
         });
         Map<Integer, SelectStatementContext> subqueryContexts = selectStatementContext.getSubqueryContexts();
         if(subqueryContexts!=null&&!subqueryContexts.isEmpty()){
             Collection<SelectStatementContext> subQueryContexts = subqueryContexts.values();
             projectionSegments.forEach(projectionSegment -> {
+                String columnLabel1 = projectionSegment.getColumnLabel();
+                Projection projection = columnLabelMapProjection.get(columnLabel1);
                 List<ColumnSegment> columnSegmentList=getColumnSegmentListByProjectionSegment(projectionSegment);
                 columnSegmentList.forEach(columnSegment -> {
                     String value = columnSegment.getIdentifier().getValue();
-                    fillAccessMapBySubqueryContexts(columnSegment,subQueryContexts,accessMap);
+                    fillAccessMapBySubqueryContexts(username,metaData,projection,columnSegment,subQueryContexts,accessMap,userLevel,sensitiveLevelMap);
                 });
 
             });
@@ -248,7 +286,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         return columnSegmentList;
     }
 
-    private static void fillAccessMapBySubqueryContexts(ColumnSegment columnSegment, Collection<SelectStatementContext> subQueryContexts, Map<String, Map<String, List<String>>> accessMap) {
+    private static void fillAccessMapBySubqueryContexts(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Collection<SelectStatementContext> subQueryContexts, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap) {
         subQueryContexts.forEach(selectStatementContext -> {
             SelectStatement sqlStatement = selectStatementContext.getSqlStatement();
             Optional<TableSegment> from = sqlStatement.getFrom();
@@ -260,14 +298,14 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             }
             List<ColumnSegment> subqueryColumnSegmentList = findSubqueryColumnSegmentList(columnSegment,projectionSegments);
             subqueryColumnSegmentList.forEach(subQueryColumnSegment -> {
-                fillAccessMapBySimpleTableSegmentMap(subQueryColumnSegment,from,accessMap);
+                fillAccessMapBySimpleTableSegmentMap(username, metaData, projection,subQueryColumnSegment,from,accessMap,userLevel,sensitiveLevelMap);
             });
 
             Map<Integer, SelectStatementContext> subqueryContexts = selectStatementContext.getSubqueryContexts();
             if(subqueryContexts!=null&&!subqueryContexts.isEmpty()){
                 Collection<SelectStatementContext> subQueryContexts2 = subqueryContexts.values();
                 subqueryColumnSegmentList.forEach(subqueryColumnSegment->{
-                    fillAccessMapBySubqueryContexts(subqueryColumnSegment,subQueryContexts2,accessMap);
+                    fillAccessMapBySubqueryContexts(username, metaData, projection,subqueryColumnSegment,subQueryContexts2,accessMap,userLevel,sensitiveLevelMap);
                 });
             }
         });
@@ -285,7 +323,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         return columnSegmentList;
     }
 
-    private static void fillAccessMapBySimpleTableSegmentMap(ColumnSegment columnSegment,Optional<TableSegment> from, Map<String, Map<String, List<String>>> accessMap) {
+    private static void fillAccessMapBySimpleTableSegmentMap(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Optional<TableSegment> from, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap) {
         if (columnSegment.getColumnBoundInfo()!=null
                 && StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalColumn().getValue())
                 && StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalTable().getValue())
@@ -306,6 +344,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             }
             stringListMap.put(tableName,strings);
             accessMap.put(databaseName,stringListMap);
+            setProjectionSensitiveLevel(username,metaData,projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName);
         }else if (from.isPresent()&&(from.get() instanceof SimpleTableSegment)){
             SimpleTableSegment simpleTableSegment = (SimpleTableSegment)from.get();
             if(simpleTableSegment.getOwner().isPresent()&&simpleTableSegment.getTableName()!=null&&columnSegment.getColumnBoundInfo()!=null&& StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalColumn().getValue())){
@@ -325,7 +364,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                 }
                 stringListMap.put(tableName,strings);
                 accessMap.put(databaseName,stringListMap);
-
+                setProjectionSensitiveLevel(username, metaData, projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName);
             }
         } else if (from.isPresent()&&(from.get() instanceof JoinTableSegment)&&columnSegment.getOwner().isPresent()&&columnSegment.getColumnBoundInfo()!=null&& StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalColumn().getValue())) {
             JoinTableSegment joinTableSegment = (JoinTableSegment) from.get();
@@ -352,7 +391,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                         }
                         stringListMap.put(tableName,strings);
                         accessMap.put(databaseName,stringListMap);
-
+                        setProjectionSensitiveLevel(username, metaData, projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName);
                     }
                 }
             }
@@ -380,7 +419,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                         }
                         stringListMap.put(tableName,strings);
                         accessMap.put(databaseName,stringListMap);
-
+                        setProjectionSensitiveLevel(username, metaData, projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName);
                     }
                 }
             }
@@ -388,8 +427,52 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         }
     }
 
+    private static void setProjectionSensitiveLevel(String username, ShardingSphereMetaData metaData, Projection projection, Integer userLevel, Map<String, Map<String, Map<String, Integer>>> sensitiveLevelMap, String databaseName, String tableName, String columnName) {
+        Integer currentSensitiveLevel = projection.getSensitiveLevel();
+        Integer newSensitiveLevel = 0;
+        Map<String, Map<String, Integer>> tableSensitiveLevelMap = sensitiveLevelMap.get(databaseName);
+        if(tableSensitiveLevelMap!=null){
+            Map<String, Integer> columnSensitiveLevelMap = tableSensitiveLevelMap.get(tableName);
+            if(columnSensitiveLevelMap!=null){
+                Integer columnSensitiveLevel = columnSensitiveLevelMap.get(columnName);
+                if(columnSensitiveLevel!=null){
+                    newSensitiveLevel = columnSensitiveLevel;
+                }
+            }
+        }
+        //todo 这里判断用户在这张表，或者这个字段上是否有脱敏白名单权限，有的话，该字段的脱敏级别为0
+        ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase(databaseName);
+        if(shardingSphereDatabase!=null){
+            Optional<AccessControlRule> accessControlRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+            if(accessControlRule.isPresent()){
+                Optional<AccessControlUser> accessControlUser = accessControlRule.get().findAccessControlUser(username);
+                if(accessControlUser.isPresent()){
+                    Map<String, AccessControlTable> tables = accessControlUser.get().getTables();
+                    AccessControlTable accessControlTable = tables.get(tableName);
+                    if(accessControlTable!=null){
+                        if(accessControlTable.getDesensitizeWhiteListFlag()){
+                            newSensitiveLevel = 0;
+                        }else {
+                            Map<String, Integer> columns = accessControlTable.getColumns();
+                            Integer i = columns.get(columnName);
+                            if(i!=null&&i==0){
+                                newSensitiveLevel = 0;
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
 
+        if(currentSensitiveLevel==null||currentSensitiveLevel<newSensitiveLevel){
+            currentSensitiveLevel = newSensitiveLevel;
+            projection.setSensitiveLevel(currentSensitiveLevel);
+            if(userLevel<currentSensitiveLevel){
+                projection.setDesensitizeFlag(true);
+            }
+        }
+    }
 
 
     private static void fillColumnAccessWithSqlStatement(SelectStatement sqlStatement, Map<String, Map<String, List<String>>> accessMap) {

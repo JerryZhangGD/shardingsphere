@@ -123,7 +123,7 @@ public final class ProjectionsContext {
         return Optional.empty();
     }
     
-    private String getOriginalColumnName(final Projection projection) {
+    public String getOriginalColumnName(final Projection projection) {
         return projection instanceof ColumnProjection ? ((ColumnProjection) projection).getOriginalColumn().getValue() : projection.getExpression();
     }
     
@@ -182,5 +182,12 @@ public final class ProjectionsContext {
         }
         Projection projection = expandProjections.get(columnIndex - 1);
         return projection instanceof ColumnProjection ? Optional.of((ColumnProjection) projection) : Optional.empty();
+    }
+
+    public Projection findProjection(final int columnIndex) {
+        if (expandProjections.size() < columnIndex) {
+            return null;
+        }
+        return expandProjections.get(columnIndex - 1);
     }
 }

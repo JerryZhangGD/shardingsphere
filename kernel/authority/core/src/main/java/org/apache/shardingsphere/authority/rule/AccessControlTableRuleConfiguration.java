@@ -2,16 +2,21 @@ package org.apache.shardingsphere.authority.rule;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class AccessControlTableRuleConfiguration {
     private String tableName;
     private Boolean allFlag;
-    private List<String> columns = new ArrayList();
 
-    public AccessControlTableRuleConfiguration(String tableName, Boolean allFlag, List<String> columns) {
+    private Boolean desensitizeWhiteListFlag;
+    private Map<String,Integer> columns;
+
+    public AccessControlTableRuleConfiguration(String tableName, Boolean allFlag, Boolean desensitizeWhiteListFlag, Map<String, Integer> columns) {
         this.tableName = tableName;
         this.allFlag = allFlag;
+        this.desensitizeWhiteListFlag = desensitizeWhiteListFlag;
         this.columns = columns;
     }
 
@@ -31,11 +36,19 @@ public class AccessControlTableRuleConfiguration {
         this.allFlag = allFlag;
     }
 
-    public List<String> getColumns() {
+    public Boolean getDesensitizeWhiteListFlag() {
+        return desensitizeWhiteListFlag;
+    }
+
+    public void setDesensitizeWhiteListFlag(Boolean desensitizeWhiteListFlag) {
+        this.desensitizeWhiteListFlag = desensitizeWhiteListFlag;
+    }
+
+    public Map<String, Integer> getColumns() {
         return columns;
     }
 
-    public void setColumns(List<String> columns) {
+    public void setColumns(Map<String, Integer> columns) {
         this.columns = columns;
     }
 }

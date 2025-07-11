@@ -17,21 +17,21 @@
 
 package org.apache.shardingsphere.authority.rule;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.cedarsoftware.util.CaseInsensitiveMap;
+import lombok.Data;
 
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * Mask column.
+ * Mask table.
  */
-@RequiredArgsConstructor
-@Getter
-public final class AccessControlTable {
+@Data
+public final class SensitiveLevelTable {
+    private final Map<String, SensitiveLevelColumn> columns;
 
-    private final Boolean allFlag;
-    private final String name;
-    private final Boolean desensitizeWhiteListFlag;
-    private final Map<String,Integer> columns;
+    public SensitiveLevelTable(final SensitiveLevelTableConfiguration config) {
+        this.columns = config.getColumns().stream().collect(Collectors.toMap(SensitiveLevelColumnConfiguration::getName,
+                each->new SensitiveLevelColumn(each.getName(),each.getSensitiveLevel()),(v1,v2)->v2));
+    }
 }

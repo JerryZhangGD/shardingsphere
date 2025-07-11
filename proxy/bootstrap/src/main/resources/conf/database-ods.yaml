@@ -89,18 +89,76 @@ rules:
           DWD_11:
             tableName: DWD_11
             allFlag: true
+            desensitizeWhiteListFlag: false
             columns:
-              - UPDATEUSER
-              - UPDATETIME
+              UPDATEUSER: 1
+              UPDATETIME: 2
           DWD_12_312312312:
             tableName: DWD_12_312312312
             allFlag: false
+            desensitizeWhiteListFlag: false
             columns:
-              - DYGX
-              - CS
+              DYGX: 1
+              CS: 2
+          ODS_HAP_SENSITIVE_TEST_DF:
+            tableName: ODS_HAP_SENSITIVE_TEST_DF
+            desensitizeWhiteListFlag: false
+            allFlag: false
+            columns:
+              tinyIntType: 1
+              smallIntType: 1
         name: root
         allFlag: false
-
+  - !SENSITIVE_LEVEL
+    tables:
+      ODS_HAP_SENSITIVE_TEST_DF:
+        columns:
+          tinyIntType:
+            name: tinyIntType
+            sensitiveLevel: 3
+          smallIntType:
+            name: smallIntType
+            sensitiveLevel: 3
+          intType:
+            name: intType
+            sensitiveLevel: 3
+          bigIntType:
+            name: bigIntType
+            sensitiveLevel: 3
+          largeIntType:
+            name: largeIntType
+            sensitiveLevel: 3
+          booleanType:
+            name: booleanType
+            sensitiveLevel: 3
+          charType:
+            name: charType
+            sensitiveLevel: 3
+          varcharType:
+            name: varcharType
+            sensitiveLevel: 3
+          stringType:
+            name: stringType
+            sensitiveLevel: 3
+          floatType:
+            name: floatType
+            sensitiveLevel: 3
+          doubleType:
+            name: doubleType
+            sensitiveLevel: 3
+          decimalType:
+            name: decimalType
+            sensitiveLevel: 3
+        name: ODS_HAP_SENSITIVE_TEST_DF
+      DWD_12_312312312:
+        columns:
+          DYGX:
+            name: DYGX
+            sensitiveLevel: 4
+          UPDATEUSER:
+            name: UPDATEUSER
+            sensitiveLevel: 3
+        name: DWD_12_312312312
 #databaseName: dolphin
 #dataSources:
 #  dolphin:

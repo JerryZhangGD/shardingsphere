@@ -18,6 +18,7 @@
 package org.apache.shardingsphere.mask.merge.dql;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.shardingsphere.infra.binder.context.segment.select.projection.Projection;
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.impl.ColumnProjection;
 import org.apache.shardingsphere.infra.binder.context.statement.dml.SelectStatementContext;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
@@ -28,6 +29,7 @@ import org.apache.shardingsphere.mask.spi.MaskAlgorithm;
 import java.io.InputStream;
 import java.io.Reader;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.Calendar;
 import java.util.Optional;
 
@@ -66,7 +68,8 @@ public final class MaskMergedResult implements MergedResult {
         Object originalValue = mergedResult.getValue(columnIndex, Object.class);
         return null == originalValue ? null : maskAlgorithm.get().mask(originalValue);
     }
-    
+
+
     @Override
     public Object getCalendarValue(final int columnIndex, final Class<?> type, final Calendar calendar) throws SQLException {
         return mergedResult.getCalendarValue(columnIndex, type, calendar);

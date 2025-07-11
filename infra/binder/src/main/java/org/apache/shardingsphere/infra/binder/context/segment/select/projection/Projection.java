@@ -53,4 +53,20 @@ public interface Projection {
      * @return alias
      */
     Optional<IdentifierValue> getAlias();
+
+    Integer getSensitiveLevel();
+
+    void setSensitiveLevel(Integer sensitiveLevel);
+
+    Boolean getDesensitizeFlag();
+
+    void setDesensitizeFlag(Boolean desensitizeFlag);
+
+    int getProjectionType();
+
+    void setProjectionType(int projectionType);
+
+    int getProjectionLength();
+
+    void setProjectionLength(int projectionLength);
 }

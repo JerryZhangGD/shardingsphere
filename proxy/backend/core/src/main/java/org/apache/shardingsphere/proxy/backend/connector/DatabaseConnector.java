@@ -19,6 +19,8 @@ package org.apache.shardingsphere.proxy.backend.connector;
 
 import org.apache.shardingsphere.infra.binder.context.aware.CursorAware;
 import org.apache.shardingsphere.infra.binder.context.segment.insert.keygen.GeneratedKeyContext;
+import org.apache.shardingsphere.infra.binder.context.segment.select.projection.Projection;
+import org.apache.shardingsphere.infra.binder.context.segment.select.projection.ProjectionsContext;
 import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
 import org.apache.shardingsphere.infra.binder.context.statement.ddl.CloseStatementContext;
 import org.apache.shardingsphere.infra.binder.context.statement.ddl.CursorStatementContext;
@@ -75,14 +77,12 @@ import org.apache.shardingsphere.sql.parser.statement.core.statement.SQLStatemen
 import org.apache.shardingsphere.sql.parser.statement.core.statement.dml.DMLStatement;
 import org.apache.shardingsphere.sql.parser.statement.core.statement.dml.SelectStatement;
 import org.apache.shardingsphere.sql.parser.statement.mysql.dml.MySQLInsertStatement;
+import org.apache.shardingsphere.sql.parser.statement.mysql.dml.MySQLSelectStatement;
 import org.apache.shardingsphere.sqlfederation.executor.context.SQLFederationContext;
 import org.apache.shardingsphere.transaction.api.TransactionType;
 import org.apache.shardingsphere.transaction.implicit.ImplicitTransactionCallback;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -296,7 +296,15 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
         List<QueryHeader> result = new ArrayList<>(columnCount);
         QueryHeaderBuilderEngine queryHeaderBuilderEngine = new QueryHeaderBuilderEngine(database.getProtocolType());
         for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-            result.add(createQueryHeader(queryHeaderBuilderEngine, sqlStatementContext, queryResultSample, database, columnIndex));
+            QueryHeader queryHeader = createQueryHeader(queryHeaderBuilderEngine, sqlStatementContext, queryResultSample, database, columnIndex);
+            result.add(queryHeader);
+            if(sqlStatementContext instanceof SelectStatementContext){
+                SelectStatementContext selectStatementContext = (SelectStatementContext) sqlStatementContext;
+                ProjectionsContext projectionsContext = selectStatementContext.getProjectionsContext();
+                Projection projection = projectionsContext.findProjection(columnIndex);
+                projection.setProjectionType(queryHeader.getColumnType());
+                projection.setProjectionLength(queryHeader.getColumnLength());
+            }
         }
         return result;
     }
@@ -366,7 +374,55 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
     public QueryResponseRow getRowData() throws SQLException {
         List<QueryResponseCell> cells = new ArrayList<>(queryHeaders.size());
         for (int columnIndex = 1; columnIndex <= queryHeaders.size(); columnIndex++) {
-            Object data = mergedResult.getValue(columnIndex, Object.class);
+            Object data = null;
+            SQLStatementContext sqlStatementContext = queryContext.getSqlStatementContext();
+            if(sqlStatementContext instanceof SelectStatementContext){
+                SelectStatementContext selectStatementContext = (SelectStatementContext)sqlStatementContext;
+                Projection projection = selectStatementContext.getProjectionsContext().findProjection(columnIndex);
+                if(projection.getDesensitizeFlag()!=null&&projection.getDesensitizeFlag()){
+                    int projectionType = projection.getProjectionType();
+                    int projectionLength = projection.getProjectionLength();
+                    switch (projectionType){
+                        case Types.CHAR:{
+                            data = "*";
+                            break;
+                        }
+                        case Types.NCHAR:
+                        case Types.NVARCHAR:
+                        case Types.CLOB:
+                        case Types.LONGNVARCHAR:
+                        case Types.LONGVARCHAR:
+                        case Types.VARCHAR:{
+                            if(projectionLength>0&&projectionLength<5){
+                                StringBuilder sb = new StringBuilder(projectionLength);
+                                for (int i = 0; i < projectionLength; i++) {
+                                    sb.append('*');
+                                }
+                                data = sb.toString();
+                            }else {
+                                data = "*****";
+                            }
+                            break;
+                        }
+                        case Types.BIT:
+                        case Types.INTEGER:
+                        case Types.SMALLINT:
+                        case Types.TINYINT:
+                        case Types.FLOAT:
+                        case Types.REAL:
+                        case Types.DOUBLE:
+                        case Types.DECIMAL:
+                        case Types.NUMERIC:
+                        case Types.BIGINT: {
+                            data = 0;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(data == null){
+                data = mergedResult.getValue(columnIndex, Object.class);
+            }
             cells.add(new QueryResponseCell(queryHeaders.get(columnIndex - 1).getColumnType(), data, queryHeaders.get(columnIndex - 1).getColumnTypeName()));
         }
         return new QueryResponseRow(cells);

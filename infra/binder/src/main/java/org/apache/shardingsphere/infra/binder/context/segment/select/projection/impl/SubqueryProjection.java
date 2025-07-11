@@ -45,6 +45,24 @@ public final class SubqueryProjection implements Projection {
     private final IdentifierValue alias;
     
     private final DatabaseType databaseType;
+
+    private Integer sensitiveLevel;
+
+    private Boolean desensitizeFlag;
+
+    private int projectionType;
+
+    private int projectionLength;
+
+    @Override
+    public int getProjectionLength() {
+        return this.projectionLength;
+    }
+
+    @Override
+    public void setProjectionLength(int projectionLength) {
+        this.projectionLength = projectionLength;
+    }
     
     @Override
     public String getColumnName() {
@@ -65,5 +83,35 @@ public final class SubqueryProjection implements Projection {
     @Override
     public String getExpression() {
         return subquerySegment.getText();
+    }
+
+    @Override
+    public Integer getSensitiveLevel() {
+        return this.sensitiveLevel;
+    }
+
+    @Override
+    public void setSensitiveLevel(Integer sensitiveLevel) {
+        this.sensitiveLevel = sensitiveLevel;
+    }
+
+    @Override
+    public Boolean getDesensitizeFlag() {
+        return this.desensitizeFlag;
+    }
+
+    @Override
+    public void setDesensitizeFlag(Boolean desensitizeFlag) {
+        this.desensitizeFlag=desensitizeFlag;
+    }
+
+    @Override
+    public int getProjectionType() {
+        return this.projectionType;
+    }
+
+    @Override
+    public void setProjectionType(int projectionType) {
+        this.projectionType = projectionType;
     }
 }

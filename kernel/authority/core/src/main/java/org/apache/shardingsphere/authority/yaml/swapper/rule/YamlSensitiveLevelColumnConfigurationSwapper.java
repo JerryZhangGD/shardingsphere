@@ -19,26 +19,26 @@ package org.apache.shardingsphere.authority.yaml.swapper.rule;
 
 
 import org.apache.shardingsphere.authority.rule.AccessControlTableRuleConfiguration;
+import org.apache.shardingsphere.authority.rule.SensitiveLevelColumnConfiguration;
 import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlTableRuleConfiguration;
+import org.apache.shardingsphere.authority.yaml.config.rule.YamlSensitiveLevelColumnConfiguration;
 import org.apache.shardingsphere.infra.util.yaml.swapper.YamlConfigurationSwapper;
 
 /**
  * YAML mask column rule configuration swapper.
  */
-public final class YamlAccessControlTableRuleConfigurationSwapper implements YamlConfigurationSwapper<YamlAccessControlTableRuleConfiguration, AccessControlTableRuleConfiguration> {
+public final class YamlSensitiveLevelColumnConfigurationSwapper implements YamlConfigurationSwapper<YamlSensitiveLevelColumnConfiguration, SensitiveLevelColumnConfiguration> {
     
     @Override
-    public YamlAccessControlTableRuleConfiguration swapToYamlConfiguration(final AccessControlTableRuleConfiguration data) {
-        YamlAccessControlTableRuleConfiguration result = new YamlAccessControlTableRuleConfiguration();
-        result.setTableName(data.getTableName());
-        result.setAllFlag(data.getAllFlag());
-        result.setDesensitizeWhiteListFlag(data.getDesensitizeWhiteListFlag());
-        result.setColumns(data.getColumns());
+    public YamlSensitiveLevelColumnConfiguration swapToYamlConfiguration(final SensitiveLevelColumnConfiguration data) {
+        YamlSensitiveLevelColumnConfiguration result = new YamlSensitiveLevelColumnConfiguration();
+        result.setName(data.getName());
+        result.setSensitiveLevel(data.getSensitiveLevel());
         return result;
     }
     
     @Override
-    public AccessControlTableRuleConfiguration swapToObject(final YamlAccessControlTableRuleConfiguration yamlConfig) {
-        return new AccessControlTableRuleConfiguration(yamlConfig.getTableName(), yamlConfig.getAllFlag(),yamlConfig.getDesensitizeWhiteListFlag(),yamlConfig.getColumns());
+    public SensitiveLevelColumnConfiguration swapToObject(final YamlSensitiveLevelColumnConfiguration yamlConfig) {
+        return new SensitiveLevelColumnConfiguration(yamlConfig.getName(),yamlConfig.getSensitiveLevel());
     }
 }

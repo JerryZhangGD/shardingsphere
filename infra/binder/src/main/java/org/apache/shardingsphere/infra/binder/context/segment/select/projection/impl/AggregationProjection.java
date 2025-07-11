@@ -51,9 +51,27 @@ public class AggregationProjection implements Projection {
     private final DatabaseType databaseType;
     
     private final List<AggregationProjection> derivedAggregationProjections = new ArrayList<>(2);
+
+    private Integer sensitiveLevel;
+
+    private Boolean desensitizeFlag;
+
+    private int projectionType;
     
     @Setter
     private int index = -1;
+
+    private int projectionLength;
+
+    @Override
+    public int getProjectionLength() {
+        return this.projectionLength;
+    }
+
+    @Override
+    public void setProjectionLength(int projectionLength) {
+        this.projectionLength = projectionLength;
+    }
     
     @Override
     public String getColumnName() {
@@ -71,5 +89,35 @@ public class AggregationProjection implements Projection {
     @Override
     public final Optional<IdentifierValue> getAlias() {
         return Optional.ofNullable(alias);
+    }
+
+    @Override
+    public Integer getSensitiveLevel() {
+        return this.sensitiveLevel;
+    }
+
+    @Override
+    public void setSensitiveLevel(Integer sensitiveLevel) {
+        this.sensitiveLevel = sensitiveLevel;
+    }
+
+    @Override
+    public Boolean getDesensitizeFlag() {
+        return this.desensitizeFlag;
+    }
+
+    @Override
+    public void setDesensitizeFlag(Boolean desensitizeFlag) {
+        this.desensitizeFlag=desensitizeFlag;
+    }
+
+    @Override
+    public int getProjectionType() {
+        return this.projectionType;
+    }
+
+    @Override
+    public void setProjectionType(int projectionType) {
+        this.projectionType = projectionType;
     }
 }

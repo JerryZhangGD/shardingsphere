@@ -35,10 +35,10 @@ public final class HasNotAccessRightException extends MetaDataSQLException {
     }
 
     public HasNotAccessRightException(final String databaseName,final List<String> tableNameList) {
-        super(XOpenSQLState.PRIVILEGE_NOT_GRANTED, 2, "无库 '%s' 中 '%s' 这些表的访问权限", databaseName, tableNameList.stream().collect(Collectors.joining(",")));
+        super(XOpenSQLState.PRIVILEGE_NOT_GRANTED, 2, "你暂时没有 '%s'.'%s' 表的访问权限，请联系管理员添加", databaseName, tableNameList.stream().collect(Collectors.joining(",")));
     }
 
     public HasNotAccessRightException(final String databaseName,final String tableName,final List<String> columnList) {
-        super(XOpenSQLState.PRIVILEGE_NOT_GRANTED, 2, "无表 '%s'.'%s' 中 '%s' 这些字段的访问权限", databaseName, tableName, columnList.stream().collect(Collectors.joining(",")));
+        super(XOpenSQLState.PRIVILEGE_NOT_GRANTED, 2, "由于管理员为您设置了列权限，目前没有表 '%s'.'%s' 中 %s 列的权限，请勿使用select * 进行查询，改为明确的查询列。或者联系数据平台管理员进行设置。", databaseName, tableName, columnList.stream().collect(Collectors.joining(",")));
     }
 }

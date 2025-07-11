@@ -58,7 +58,25 @@ public final class ColumnProjection implements Projection {
     private IdentifierValue originalTable;
     
     private IdentifierValue originalColumn;
-    
+
+    private Integer sensitiveLevel;
+
+    private Boolean desensitizeFlag;
+
+    private int projectionType;
+
+    private int projectionLength;
+
+    @Override
+    public int getProjectionLength() {
+        return this.projectionLength;
+    }
+
+    @Override
+    public void setProjectionLength(int projectionLength) {
+        this.projectionLength = projectionLength;
+    }
+
     public ColumnProjection(final String owner, final String name, final String alias, final DatabaseType databaseType) {
         this(null == owner ? null : new IdentifierValue(owner, QuoteCharacter.NONE), new IdentifierValue(name, QuoteCharacter.NONE),
                 null == alias ? null : new IdentifierValue(alias, QuoteCharacter.NONE), databaseType, null, null);
@@ -137,4 +155,36 @@ public final class ColumnProjection implements Projection {
     public Optional<IdentifierValue> getAlias() {
         return Optional.ofNullable(alias);
     }
+
+    @Override
+    public Integer getSensitiveLevel() {
+        return this.sensitiveLevel;
+    }
+
+    @Override
+    public void setSensitiveLevel(Integer sensitiveLevel) {
+        this.sensitiveLevel = sensitiveLevel;
+    }
+
+    @Override
+    public Boolean getDesensitizeFlag() {
+        return this.desensitizeFlag;
+    }
+
+    @Override
+    public void setDesensitizeFlag(Boolean desensitizeFlag) {
+        this.desensitizeFlag=desensitizeFlag;
+    }
+
+    @Override
+    public int getProjectionType() {
+        return this.projectionType;
+    }
+
+    @Override
+    public void setProjectionType(int projectionType) {
+        this.projectionType = projectionType;
+    }
+
+
 }

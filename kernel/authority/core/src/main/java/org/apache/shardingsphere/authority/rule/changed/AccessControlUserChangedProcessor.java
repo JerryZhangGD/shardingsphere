@@ -55,7 +55,7 @@ public final class AccessControlUserChangedProcessor implements RuleItemConfigur
     @Override
     public void changeRuleItemConfiguration(final AlterRuleItemEvent event, final AccessControlRuleConfiguration currentRuleConfig, final AccessControlUserRuleConfiguration toBeChangedItemConfig) {
         // TODO refactor DistSQL to only persist config
-        currentRuleConfig.getUsers().removeIf(each ->each.getName().equals(toBeChangedItemConfig.getName()));
+        currentRuleConfig.getUsers().removeIf(each ->each.getName()==null||each.getName().equals(toBeChangedItemConfig.getName()));
         currentRuleConfig.getUsers().add(toBeChangedItemConfig);
     }
     

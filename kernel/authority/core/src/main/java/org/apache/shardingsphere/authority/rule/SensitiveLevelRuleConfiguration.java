@@ -19,19 +19,25 @@ package org.apache.shardingsphere.authority.rule;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.apache.shardingsphere.infra.config.rule.function.EnhancedRuleConfiguration;
+import org.apache.shardingsphere.infra.config.rule.scope.DatabaseRuleConfiguration;
 
-import java.util.List;
-import java.util.Map;
+import java.util.Collection;
 
 /**
- * Mask column.
+ * Authority rule configuration.
  */
 @RequiredArgsConstructor
 @Getter
-public final class AccessControlTable {
+@Setter
+public final class SensitiveLevelRuleConfiguration implements DatabaseRuleConfiguration, EnhancedRuleConfiguration {
 
-    private final Boolean allFlag;
-    private final String name;
-    private final Boolean desensitizeWhiteListFlag;
-    private final Map<String,Integer> columns;
+
+    private final Collection<SensitiveLevelTableConfiguration> tables;
+
+    @Override
+    public boolean isEmpty() {
+        return tables.isEmpty();
+    }
 }

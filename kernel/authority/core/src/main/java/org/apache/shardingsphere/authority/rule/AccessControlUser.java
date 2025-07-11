@@ -35,6 +35,6 @@ public final class AccessControlUser {
     public AccessControlUser(final AccessControlUserRuleConfiguration config) {
         this.allFlag = config.getAllFlag();
         this.tables = config.getTables().stream().collect(Collectors.toMap(AccessControlTableRuleConfiguration::getTableName,
-                each -> new AccessControlTable(each.getAllFlag(),each.getTableName(),each.getColumns()), (oldValue, currentValue) -> oldValue, CaseInsensitiveMap::new));
+                each -> new AccessControlTable(each.getAllFlag(),each.getTableName(),each.getDesensitizeWhiteListFlag(),each.getColumns()), (oldValue, currentValue) -> oldValue, CaseInsensitiveMap::new));
     }
 }

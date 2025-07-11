@@ -21,17 +21,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Mask column.
  */
 @RequiredArgsConstructor
 @Getter
-public final class AccessControlTable {
-
-    private final Boolean allFlag;
+public final class SensitiveLevelColumn {
     private final String name;
-    private final Boolean desensitizeWhiteListFlag;
-    private final Map<String,Integer> columns;
+    private final Integer sensitiveLevel;
 }
