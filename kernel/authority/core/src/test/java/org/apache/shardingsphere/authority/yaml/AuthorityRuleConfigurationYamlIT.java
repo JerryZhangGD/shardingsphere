@@ -34,7 +34,7 @@ class AuthorityRuleConfigurationYamlIT extends YamlRuleConfigurationIT {
     
     private static AuthorityRuleConfiguration getExpectedRuleConfiguration() {
         return new AuthorityRuleConfiguration(
-                Arrays.asList(new UserConfiguration("root", "root", "%", null, true), new UserConfiguration("sharding", "sharding", "%", null, false)),
+                Arrays.asList(new UserConfiguration("root", "root", "%", null, true,1), new UserConfiguration("sharding", "sharding", "%", null, false,1)),
                 new AlgorithmConfiguration("ALL_PERMITTED", new Properties()), Collections.singletonMap("fixture", new AlgorithmConfiguration("FIXTURE", new Properties())), "fixture");
     }
 }

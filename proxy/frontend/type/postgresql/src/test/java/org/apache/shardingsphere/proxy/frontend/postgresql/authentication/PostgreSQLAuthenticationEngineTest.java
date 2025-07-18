@@ -182,7 +182,7 @@ class PostgreSQLAuthenticationEngineTest {
         payload.writeInt1('p');
         payload.writeInt4(4 + md5Digest.length() + 1);
         payload.writeStringNul(md5Digest);
-        MetaDataContexts metaDataContexts = getMetaDataContexts(new UserConfiguration(username, password, "", null, false));
+        MetaDataContexts metaDataContexts = getMetaDataContexts(new UserConfiguration(username, password, "", null, false,1));
         when(contextManager.getMetaDataContexts()).thenReturn(metaDataContexts);
         actual = engine.authenticate(channelHandlerContext, payload);
         assertThat(actual.isFinished(), is(password.equals(inputPassword)));

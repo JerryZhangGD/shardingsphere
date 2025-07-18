@@ -44,10 +44,10 @@ class DatabasePermittedPrivilegeProviderTest {
         Properties props = PropertiesBuilder.build(new Property("user-database-mappings", "root@localhost=*, user1@127.0.0.1=sys_db, user1@=foo_db, user1@=bar_db, user2@=*"));
         PrivilegeProvider provider = TypedSPILoader.getService(PrivilegeProvider.class, "DATABASE_PERMITTED", props);
         Collection<UserConfiguration> userConfigs = Arrays.asList(
-                new UserConfiguration("root", "", "localhost", null, false),
-                new UserConfiguration("user1", "", "127.0.0.1", null, false),
-                new UserConfiguration("user1", "", "%", null, false),
-                new UserConfiguration("user3", "", "%", null, false));
+                new UserConfiguration("root", "", "localhost", null, false,1),
+                new UserConfiguration("user1", "", "127.0.0.1", null, false,1),
+                new UserConfiguration("user1", "", "%", null, false,1),
+                new UserConfiguration("user3", "", "%", null, false,1));
         AuthorityRuleConfiguration ruleConfig = new AuthorityRuleConfiguration(userConfigs, mock(AlgorithmConfiguration.class), Collections.emptyMap(), null);
         assertTrue(provider.build(ruleConfig, new Grantee("root", "localhost")).hasPrivileges("sys_db"));
         assertTrue(provider.build(ruleConfig, new Grantee("user1", "127.0.0.1")).hasPrivileges("sys_db"));

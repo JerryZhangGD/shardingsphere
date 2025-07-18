@@ -41,19 +41,19 @@ class AuthorityRuleTest {
     
     @Test
     void assertGetAuthenticatorTypeWithAuthenticationMethodName() {
-        ShardingSphereUser user = new ShardingSphereUser("admin", "", "127.0.0.1", "foo", false);
+        ShardingSphereUser user = new ShardingSphereUser("admin", "", "127.0.0.1", "foo", false,1);
         assertThat(createAuthorityRule(null).getAuthenticatorType(user), is("FOO_AUTHENTICATION"));
     }
     
     @Test
     void assertGetAuthenticatorTypeWithDefaultAuthenticator() {
-        ShardingSphereUser user = new ShardingSphereUser("admin", "", "127.0.0.1", "bar", false);
+        ShardingSphereUser user = new ShardingSphereUser("admin", "", "127.0.0.1", "bar", false,1);
         assertThat(createAuthorityRule("foo").getAuthenticatorType(user), is("FOO_AUTHENTICATION"));
     }
     
     @Test
     void assertGetEmptyAuthenticatorType() {
-        ShardingSphereUser user = new ShardingSphereUser("admin", "", "127.0.0.1", "none", false);
+        ShardingSphereUser user = new ShardingSphereUser("admin", "", "127.0.0.1", "none", false,1);
         assertThat(createAuthorityRule(null).getAuthenticatorType(user), is(""));
     }
     
@@ -90,8 +90,8 @@ class AuthorityRuleTest {
     
     private AuthorityRule createAuthorityRule(final String defaultAuthenticator) {
         Collection<UserConfiguration> userConfigs = Arrays.asList(
-                new UserConfiguration("root", "root", "localhost", null, false),
-                new UserConfiguration("admin", "123456", "localhost", null, false));
+                new UserConfiguration("root", "root", "localhost", null, false,1),
+                new UserConfiguration("admin", "123456", "localhost", null, false,1));
         AlgorithmConfiguration privilegeProvider = new AlgorithmConfiguration("FIXTURE", new Properties());
         AuthorityRuleConfiguration ruleConfig = new AuthorityRuleConfiguration(
                 userConfigs, privilegeProvider, Collections.singletonMap("foo", new AlgorithmConfiguration("FOO_AUTHENTICATION", new Properties())), defaultAuthenticator);

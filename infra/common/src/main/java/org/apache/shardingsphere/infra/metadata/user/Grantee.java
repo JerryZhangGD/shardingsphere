@@ -52,6 +52,10 @@ public final class Grantee {
     public Grantee(final String value,final Integer level) {
         this(value.contains("@") ? value.substring(0, value.indexOf('@')) : value, value.contains("@") ? value.substring(value.indexOf('@') + 1) : "",level);
     }
+
+    public Grantee(final String username, final String hostname) {
+        this(username,hostname,1);
+    }
     
     public Grantee(final String username, final String hostname,final Integer level) {
         this.level = level;

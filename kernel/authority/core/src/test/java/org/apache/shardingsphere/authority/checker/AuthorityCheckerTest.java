@@ -34,7 +34,7 @@ class AuthorityCheckerTest {
     
     @Test
     void assertCheckIsAuthorizedDatabase() {
-        Collection<UserConfiguration> userConfigs = Collections.singleton(new UserConfiguration("root", "", "localhost", null, false));
+        Collection<UserConfiguration> userConfigs = Collections.singleton(new UserConfiguration("root", "", "localhost", null, false,1));
         AuthorityRuleConfiguration ruleConfig = new AuthorityRuleConfiguration(userConfigs, new AlgorithmConfiguration("FIXTURE", new Properties()), Collections.emptyMap(), null);
         assertTrue(new AuthorityChecker(new AuthorityRule(ruleConfig), new Grantee("root", "localhost")).isAuthorized("db0"));
     }
