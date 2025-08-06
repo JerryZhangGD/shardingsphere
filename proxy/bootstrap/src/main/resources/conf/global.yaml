@@ -75,6 +75,11 @@ sqlFederation:
 
 props:
   system-log-level: DEBUG
+  log-password: doris@test123
+  log-url: jdbc:mysql://10.1.7.171:9030/ads
+  log-username: root
+  log-api: http://gateway-dev.huafeng.com/dmp/api/log/save-by-log
+  log-token: eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiI2NDIyNjA1ODE1ODU5MjAwIiwic3ViIjoiNjQyMjYwNTgxNTg1OTIwMCIsImV4cCI6MjUyNDU3OTIwMH0.Vjj8Wx-Vphf_9G8R8MJaid5G8XyBMRz8rTaIStrmdzu8IOTA43BJ4Y02Q5LLylYini_0bHOLfGh_6GArirPy_Q
 #  max-connections-size-per-query: 1
 #  kernel-executor-size: 16  # Infinite by default.
 #  proxy-frontend-flush-threshold: 128  # The default value is 128.
