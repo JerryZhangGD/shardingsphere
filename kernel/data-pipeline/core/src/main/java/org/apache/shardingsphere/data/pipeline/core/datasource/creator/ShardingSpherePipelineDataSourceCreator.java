@@ -84,7 +84,7 @@ public final class ShardingSpherePipelineDataSourceCreator implements PipelineDa
     
     private void updateConfigurationProperties(final YamlRootConfiguration yamlRootConfig) {
         Properties newProps = new Properties();
-        for (String each : Arrays.asList(ConfigurationPropertyKey.KERNEL_EXECUTOR_SIZE.getKey(), ConfigurationPropertyKey.SYSTEM_LOG_LEVEL.getKey(), ConfigurationPropertyKey.SQL_SHOW.getKey())) {
+        for (String each : Arrays.asList(ConfigurationPropertyKey.LOG_API.getKey(),ConfigurationPropertyKey.LOG_TOKEN.getKey(),ConfigurationPropertyKey.LOG_URL.getKey(),ConfigurationPropertyKey.LOG_USERNAME.getKey(),ConfigurationPropertyKey.LOG_PASSWORD.getKey(),ConfigurationPropertyKey.KERNEL_EXECUTOR_SIZE.getKey(), ConfigurationPropertyKey.SYSTEM_LOG_LEVEL.getKey(), ConfigurationPropertyKey.SQL_SHOW.getKey())) {
             Object value = yamlRootConfig.getProps().get(each);
             if (null != value) {
                 newProps.put(each, value);

@@ -32,6 +32,10 @@ public enum SQLHintPropertiesKey implements TypedPropertyKey {
      * Hint data source name.
      */
     DATASOURCE_NAME_KEY("DATA_SOURCE_NAME", "dataSourceName", "", String.class),
+
+    RISK_TYPE_KEY("RISK_TYPE","riskType","",String.class),
+
+    OPE_USER_KEY("OPE_USER","opeUser","",String.class),
     
     /**
      * Whether hint route write data source or not.

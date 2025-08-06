@@ -44,6 +44,7 @@ import org.slf4j.MDC;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.stream.Collectors;
 
 /**
@@ -123,13 +124,15 @@ public final class CommandExecutorTask implements Runnable {
     
     private boolean doExecuteCommand(final ChannelHandlerContext context, final CommandExecuteEngine commandExecuteEngine, final CommandExecutor commandExecutor) throws SQLException {
         try {
+            Date startDate = new Date();
             Collection<? extends DatabasePacket> responsePackets = commandExecutor.execute();
+            Date endDate = new Date();
             if (responsePackets.isEmpty()) {
                 return false;
             }
             responsePackets.forEach(context::write);
             if (commandExecutor instanceof QueryCommandExecutor) {
-                commandExecuteEngine.writeQueryData(context, connectionSession.getDatabaseConnectionManager(), (QueryCommandExecutor) commandExecutor, responsePackets.size());
+                commandExecuteEngine.writeQueryData(endDate.getTime()-startDate.getTime(),context, connectionSession.getDatabaseConnectionManager(), (QueryCommandExecutor) commandExecutor, responsePackets.size());
             }
             return true;
         } catch (final SQLException | ShardingSphereSQLException | SQLDialectException ex) {

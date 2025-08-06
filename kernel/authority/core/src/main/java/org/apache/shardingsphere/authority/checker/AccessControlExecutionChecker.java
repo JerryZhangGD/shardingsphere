@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.shardingsphere.authority.rule.*;
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.Projection;
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.ProjectionsContext;
+import org.apache.shardingsphere.infra.binder.context.segment.select.projection.SensitiveSource;
 import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
 import org.apache.shardingsphere.infra.binder.context.statement.dml.SelectStatementContext;
 import org.apache.shardingsphere.infra.exception.kernel.metadata.HasNotAccessRightException;
@@ -57,7 +58,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         Optional<ShardingSphereUser> user = metaData.getGlobalRuleMetaData().findSingleRule(AuthorityRule.class).get().findUser(grantee);
         if(user.isPresent()){
             Integer userLevel = 1;
-            Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap = new HashMap<>();
+            Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap = new HashMap<>();
             Integer level = user.get().getGrantee().getLevel();
             String username = user.get().getGrantee().getUsername();
             if(level!=null){
@@ -67,21 +68,21 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                 ShardingSphereDatabase sphereDatabase = entry.getValue();
                 Optional<SensitiveLevelRule> sensitiveLevelRule = sphereDatabase.getRuleMetaData().findSingleRule(SensitiveLevelRule.class);
                 if(sensitiveLevelRule.isPresent()){
-                    Map<String, Map<String, Integer>> stringMapMap = sensitiveLevelMap.get(entry.getKey());
+                    Map<String, Map<String, SensitiveLevelColumnConfiguration>> stringMapMap = sensitiveLevelMap.get(entry.getKey());
                     if(stringMapMap==null){
                         stringMapMap = new HashMap<>();
                     }
                     Collection<SensitiveLevelTableConfiguration> tables = sensitiveLevelRule.get().getConfiguration().getTables();
                     if(tables!=null&&!tables.isEmpty()){
                         for(SensitiveLevelTableConfiguration sensitiveLevelTableConfiguration:tables){
-                            Map<String, Integer> columnMapSensitiveLevel = stringMapMap.get(sensitiveLevelTableConfiguration.getName());
+                            Map<String, SensitiveLevelColumnConfiguration> columnMapSensitiveLevel = stringMapMap.get(sensitiveLevelTableConfiguration.getName());
                             if(columnMapSensitiveLevel==null){
                                 columnMapSensitiveLevel = new HashMap<>();
                             }
                             Collection<SensitiveLevelColumnConfiguration> columns = sensitiveLevelTableConfiguration.getColumns();
                             if(columns!=null&&!columns.isEmpty()){
                                 for(SensitiveLevelColumnConfiguration sensitiveLevelColumnConfiguration:columns){
-                                    columnMapSensitiveLevel.put(sensitiveLevelColumnConfiguration.getName(),sensitiveLevelColumnConfiguration.getSensitiveLevel());
+                                    columnMapSensitiveLevel.put(sensitiveLevelColumnConfiguration.getName(),sensitiveLevelColumnConfiguration);
                                 }
                             }
                             stringMapMap.put(sensitiveLevelTableConfiguration.getName(), columnMapSensitiveLevel);
@@ -166,7 +167,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         }
     }
 
-    private static Map<String, Map<String, List<String>>> getAccessMapFromQueryContext(String username, ShardingSphereMetaData metaData, QueryContext queryContext, Integer userLevel, Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap) {
+    private static Map<String, Map<String, List<String>>> getAccessMapFromQueryContext(String username, ShardingSphereMetaData metaData, QueryContext queryContext, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap) {
         Map<String,Map<String,List<String>>> accessMap=new HashMap<>();
 
         SQLStatementContext sqlStatementContext = queryContext.getSqlStatementContext();
@@ -197,7 +198,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         return accessMap;
     }
 
-    private static void fillAccessMap(String username, ShardingSphereMetaData metaData, SelectStatementContext selectStatementContext, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap) {
+    private static void fillAccessMap(String username, ShardingSphereMetaData metaData, SelectStatementContext selectStatementContext, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap) {
         Map<String, Projection> columnLabelMapProjection = selectStatementContext.getProjectionsContext().getExpandProjections().stream().collect(Collectors.toMap(Projection::getColumnLabel, v -> v, (v1, v2) -> v2));
         ProjectionsContext projectionsContext = selectStatementContext.getProjectionsContext();
 
@@ -286,7 +287,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         return columnSegmentList;
     }
 
-    private static void fillAccessMapBySubqueryContexts(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Collection<SelectStatementContext> subQueryContexts, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap) {
+    private static void fillAccessMapBySubqueryContexts(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Collection<SelectStatementContext> subQueryContexts, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap) {
         subQueryContexts.forEach(selectStatementContext -> {
             SelectStatement sqlStatement = selectStatementContext.getSqlStatement();
             Optional<TableSegment> from = sqlStatement.getFrom();
@@ -323,7 +324,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         return columnSegmentList;
     }
 
-    private static void fillAccessMapBySimpleTableSegmentMap(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Optional<TableSegment> from, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,Integer>>> sensitiveLevelMap) {
+    private static void fillAccessMapBySimpleTableSegmentMap(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Optional<TableSegment> from, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap) {
         if (columnSegment.getColumnBoundInfo()!=null
                 && StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalColumn().getValue())
                 && StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalTable().getValue())
@@ -427,20 +428,56 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         }
     }
 
-    private static void setProjectionSensitiveLevel(String username, ShardingSphereMetaData metaData, Projection projection, Integer userLevel, Map<String, Map<String, Map<String, Integer>>> sensitiveLevelMap, String databaseName, String tableName, String columnName) {
+    private static void setProjectionSensitiveLevel(String username, ShardingSphereMetaData metaData, Projection projection, Integer userLevel, Map<String, Map<String, Map<String, SensitiveLevelColumnConfiguration>>> sensitiveLevelMap, String databaseName, String tableName, String columnName) {
+
         Integer currentSensitiveLevel = projection.getSensitiveLevel();
         Integer newSensitiveLevel = 0;
-        Map<String, Map<String, Integer>> tableSensitiveLevelMap = sensitiveLevelMap.get(databaseName);
+        List<SensitiveSource> sensitiveSourceList = projection.getSensitiveSourceList();
+        if(sensitiveSourceList==null){
+            sensitiveSourceList = new ArrayList<>();
+        }
+        Map<String, SensitiveSource> sensitiveSourceMap = sensitiveSourceList.stream().collect(Collectors.toMap(sensitiveSource -> sensitiveSource.getDatabaseName() + "." + sensitiveSource.getTableName() + "." + sensitiveSource.getColumnName(), v -> v, (v1, v2) -> v2));
+        Map<String, Map<String, SensitiveLevelColumnConfiguration>> tableSensitiveLevelMap = sensitiveLevelMap.get(databaseName);
+        //设置投影敏感等级
         if(tableSensitiveLevelMap!=null){
-            Map<String, Integer> columnSensitiveLevelMap = tableSensitiveLevelMap.get(tableName);
+            Map<String, SensitiveLevelColumnConfiguration> columnSensitiveLevelMap = tableSensitiveLevelMap.get(tableName);
             if(columnSensitiveLevelMap!=null){
-                Integer columnSensitiveLevel = columnSensitiveLevelMap.get(columnName);
-                if(columnSensitiveLevel!=null){
-                    newSensitiveLevel = columnSensitiveLevel;
+                SensitiveLevelColumnConfiguration sensitiveLevelColumnConfiguration = columnSensitiveLevelMap.get(columnName);
+                if(sensitiveLevelColumnConfiguration!=null){
+                    Integer columnSensitiveLevel = sensitiveLevelColumnConfiguration.getSensitiveLevel();
+                    if(columnSensitiveLevel!=null){
+                        newSensitiveLevel = columnSensitiveLevel;
+                    }
                 }
             }
         }
-        //todo 这里判断用户在这张表，或者这个字段上是否有脱敏白名单权限，有的话，该字段的脱敏级别为0
+
+
+        //设置投影关联字段信息
+        String key=databaseName+"."+tableName+"."+columnName;
+        if(!sensitiveSourceMap.containsKey(key)){
+            SensitiveSource sensitiveSource = new SensitiveSource();
+            sensitiveSource.setDatabaseName(databaseName);
+            sensitiveSource.setTableName(tableName);
+            sensitiveSource.setColumnName(columnName);
+            if(tableSensitiveLevelMap!=null){
+                Map<String, SensitiveLevelColumnConfiguration> columnSensitiveLevelMap = tableSensitiveLevelMap.get(tableName);
+                if(columnSensitiveLevelMap!=null){
+                    SensitiveLevelColumnConfiguration sensitiveLevelColumnConfiguration = columnSensitiveLevelMap.get(columnName);
+                    if(sensitiveLevelColumnConfiguration!=null){
+                        List<Map<String, Long>> recognizeResultMapList = sensitiveLevelColumnConfiguration.getRecognizeResultMapList();
+                        if(recognizeResultMapList!=null&&!recognizeResultMapList.isEmpty()){
+                            sensitiveSource.setRecognizeResultMapList(recognizeResultMapList);
+                        }
+                    }
+                }
+            }
+            sensitiveSourceList.add(sensitiveSource);
+            projection.setSensitiveSourceList(sensitiveSourceList);
+        }
+
+
+        //过滤敏感白名单
         ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase(databaseName);
         if(shardingSphereDatabase!=null){
             Optional<AccessControlRule> accessControlRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
@@ -450,9 +487,10 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                     Map<String, AccessControlTable> tables = accessControlUser.get().getTables();
                     AccessControlTable accessControlTable = tables.get(tableName);
                     if(accessControlTable!=null){
+                        //获取表级别白名单
                         if(accessControlTable.getDesensitizeWhiteListFlag()){
                             newSensitiveLevel = 0;
-                        }else {
+                        }else {//字段级别白名单
                             Map<String, Integer> columns = accessControlTable.getColumns();
                             Integer i = columns.get(columnName);
                             if(i!=null&&i==0){
@@ -465,6 +503,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         }
 
 
+        //将最高敏感等级设置给投影
         if(currentSensitiveLevel==null||currentSensitiveLevel<newSensitiveLevel){
             currentSensitiveLevel = newSensitiveLevel;
             projection.setSensitiveLevel(currentSensitiveLevel);

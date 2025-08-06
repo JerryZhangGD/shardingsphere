@@ -91,6 +91,6 @@ public interface CommandExecuteEngine {
      * @param headerPackagesCount count of header packages
      * @throws SQLException SQL exception
      */
-    void writeQueryData(ChannelHandlerContext context,
+    void writeQueryData(long duration,ChannelHandlerContext context,
                         ProxyDatabaseConnectionManager databaseConnectionManager, QueryCommandExecutor queryCommandExecutor, int headerPackagesCount) throws SQLException;
 }

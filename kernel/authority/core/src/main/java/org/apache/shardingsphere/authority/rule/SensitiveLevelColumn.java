@@ -20,7 +20,9 @@ package org.apache.shardingsphere.authority.rule;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Mask column.
@@ -30,4 +32,5 @@ import java.util.List;
 public final class SensitiveLevelColumn {
     private final String name;
     private final Integer sensitiveLevel;
+    private final List<Map<String,Long>> recognizeResultMapList;
 }

@@ -125,7 +125,7 @@ class CommandExecutorTaskTest {
         CommandExecutorTask actual = new CommandExecutorTask(engine, connectionSession, handlerContext, message);
         actual.run();
         verify(handlerContext).flush();
-        verify(engine.getCommandExecuteEngine()).writeQueryData(handlerContext, databaseConnectionManager, queryCommandExecutor, 1);
+        verify(engine.getCommandExecuteEngine()).writeQueryData(0,handlerContext, databaseConnectionManager, queryCommandExecutor, 1);
         verify(queryCommandExecutor).close();
         verify(databaseConnectionManager).closeExecutionResources();
     }

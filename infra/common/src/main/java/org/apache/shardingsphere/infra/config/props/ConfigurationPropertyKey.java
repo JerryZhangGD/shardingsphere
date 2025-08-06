@@ -33,12 +33,35 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Getter
 public enum ConfigurationPropertyKey implements TypedPropertyKey {
-    
+
+    /**
+     * The system log level.
+     */
+    LOG_API("log-api", "", String.class, true),
+    /**
+     * The system log level.
+     */
+    LOG_TOKEN("log-token", "", String.class, true),
+    /**
+     * The system log level.
+     */
+    LOG_URL("log-url", "", String.class, true),
+
+    /**
+     * The system log level.
+     */
+    LOG_USERNAME("log-username", "", String.class, true),
+
+    /**
+     * The system log level.
+     */
+    LOG_PASSWORD("log-password", "", String.class, true),
+
     /**
      * The system log level.
      */
     SYSTEM_LOG_LEVEL("system-log-level", Level.INFO.toString(), Level.class, false),
-    
+
     /**
      * Whether show SQL in log.
      */

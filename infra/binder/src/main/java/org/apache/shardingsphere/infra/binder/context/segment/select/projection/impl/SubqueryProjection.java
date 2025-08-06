@@ -22,11 +22,13 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.Projection;
+import org.apache.shardingsphere.infra.binder.context.segment.select.projection.SensitiveSource;
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.extractor.ProjectionIdentifierExtractEngine;
 import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.item.SubqueryProjectionSegment;
 import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -53,6 +55,18 @@ public final class SubqueryProjection implements Projection {
     private int projectionType;
 
     private int projectionLength;
+
+    private List<SensitiveSource> sensitiveSourceList;
+
+    @Override
+    public List<SensitiveSource> getSensitiveSourceList() {
+        return sensitiveSourceList;
+    }
+
+    @Override
+    public void setSensitiveSourceList(List<SensitiveSource> sensitiveSourceList) {
+        this.sensitiveSourceList = sensitiveSourceList;
+    }
 
     @Override
     public int getProjectionLength() {

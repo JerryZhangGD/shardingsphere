@@ -74,8 +74,8 @@ public final class OpenGaussCommandExecuteEngine implements CommandExecuteEngine
     }
     
     @Override
-    public void writeQueryData(final ChannelHandlerContext context,
+    public void writeQueryData(final long duration,final ChannelHandlerContext context,
                                final ProxyDatabaseConnectionManager databaseConnectionManager, final QueryCommandExecutor queryCommandExecutor, final int headerPackagesCount) throws SQLException {
-        postgresqlCommandExecuteEngine.writeQueryData(context, databaseConnectionManager, queryCommandExecutor, headerPackagesCount);
+        postgresqlCommandExecuteEngine.writeQueryData(duration,context, databaseConnectionManager, queryCommandExecutor, headerPackagesCount);
     }
 }

@@ -39,6 +39,6 @@ public final class YamlSensitiveLevelColumnConfigurationSwapper implements YamlC
     
     @Override
     public SensitiveLevelColumnConfiguration swapToObject(final YamlSensitiveLevelColumnConfiguration yamlConfig) {
-        return new SensitiveLevelColumnConfiguration(yamlConfig.getName(),yamlConfig.getSensitiveLevel());
+        return new SensitiveLevelColumnConfiguration(yamlConfig.getName(),yamlConfig.getSensitiveLevel(),yamlConfig.getRecognizeResultMapList());
     }
 }

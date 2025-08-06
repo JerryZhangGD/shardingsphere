@@ -19,6 +19,7 @@ package org.apache.shardingsphere.infra.binder.context.segment.select.projection
 
 import org.apache.shardingsphere.sql.parser.statement.core.value.identifier.IdentifierValue;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -69,4 +70,8 @@ public interface Projection {
     int getProjectionLength();
 
     void setProjectionLength(int projectionLength);
+
+    List<SensitiveSource> getSensitiveSourceList();
+
+    void setSensitiveSourceList(List<SensitiveSource> sensitiveSourceList);
 }

@@ -30,7 +30,7 @@ public enum SQLHintTokenType {
     /**
      * SQL start hint token.
      */
-    SQL_START_HINT_TOKEN("SHARDINGSPHERE_HINT", "ShardingSphere hint");
+    SQL_START_HINT_TOKEN("RISK_HINT", "Risk hint");
     
     private final String key;
     

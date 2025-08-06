@@ -84,7 +84,7 @@ class PostgreSQLCommandExecuteEngineTest {
         PostgreSQLCommandExecuteEngine commandExecuteEngine = new PostgreSQLCommandExecuteEngine();
         ProxyDatabaseConnectionManager databaseConnectionManager = mock(ProxyDatabaseConnectionManager.class);
         when(databaseConnectionManager.getConnectionSession()).thenReturn(connectionSession);
-        commandExecuteEngine.writeQueryData(channelHandlerContext, databaseConnectionManager, comQueryExecutor, 0);
+        commandExecuteEngine.writeQueryData(0,channelHandlerContext, databaseConnectionManager, comQueryExecutor, 0);
         verify(channelHandlerContext).write(any(PostgreSQLReadyForQueryPacket.class));
     }
     
@@ -94,7 +94,7 @@ class PostgreSQLCommandExecuteEngineTest {
         when(queryCommandExecutor.getResponseType()).thenReturn(ResponseType.UPDATE);
         ProxyDatabaseConnectionManager databaseConnectionManager = mock(ProxyDatabaseConnectionManager.class, RETURNS_DEEP_STUBS);
         when(databaseConnectionManager.getConnectionSession()).thenReturn(connectionSession);
-        commandExecuteEngine.writeQueryData(channelHandlerContext, databaseConnectionManager, queryCommandExecutor, 0);
+        commandExecuteEngine.writeQueryData(0,channelHandlerContext, databaseConnectionManager, queryCommandExecutor, 0);
         verify(channelHandlerContext).write(PostgreSQLReadyForQueryPacket.NOT_IN_TRANSACTION);
     }
     
@@ -103,7 +103,7 @@ class PostgreSQLCommandExecuteEngineTest {
         PostgreSQLCommandExecuteEngine commandExecuteEngine = new PostgreSQLCommandExecuteEngine();
         when(queryCommandExecutor.getResponseType()).thenReturn(ResponseType.QUERY);
         when(channel.isActive()).thenReturn(false);
-        commandExecuteEngine.writeQueryData(channelHandlerContext, mock(ProxyDatabaseConnectionManager.class), queryCommandExecutor, 0);
+        commandExecuteEngine.writeQueryData(0,channelHandlerContext, mock(ProxyDatabaseConnectionManager.class), queryCommandExecutor, 0);
         verify(channelHandlerContext).write(isA(PostgreSQLCommandCompletePacket.class));
     }
     
@@ -126,7 +126,7 @@ class PostgreSQLCommandExecuteEngineTest {
         ContextManager contextManager = new ContextManager(MetaDataContextsFactory.create(mock(MetaDataPersistService.class),
                 new ShardingSphereMetaData()), computeNodeInstanceContext, mock(PersistRepository.class));
         when(ProxyContext.getInstance().getContextManager()).thenReturn(contextManager);
-        commandExecuteEngine.writeQueryData(channelHandlerContext, databaseConnectionManager, queryCommandExecutor, 0);
+        commandExecuteEngine.writeQueryData(0,channelHandlerContext, databaseConnectionManager, queryCommandExecutor, 0);
         verify(resourceLock).doAwait(channelHandlerContext);
         verify(channelHandlerContext).write(packet);
         verify(channelHandlerContext).write(isA(PostgreSQLCommandCompletePacket.class));

@@ -32,6 +32,6 @@ public final class SensitiveLevelTable {
 
     public SensitiveLevelTable(final SensitiveLevelTableConfiguration config) {
         this.columns = config.getColumns().stream().collect(Collectors.toMap(SensitiveLevelColumnConfiguration::getName,
-                each->new SensitiveLevelColumn(each.getName(),each.getSensitiveLevel()),(v1,v2)->v2));
+                each->new SensitiveLevelColumn(each.getName(),each.getSensitiveLevel(),each.getRecognizeResultMapList()),(v1,v2)->v2));
     }
 }

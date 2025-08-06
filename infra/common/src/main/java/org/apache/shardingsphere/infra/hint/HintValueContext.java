@@ -51,6 +51,10 @@ public final class HintValueContext {
     private boolean skipMetadataValidate;
     
     private boolean shadow;
+
+    private String riskType;
+
+    private String opeUser;
     
     /**
      * Find hint data source name.

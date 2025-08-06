@@ -63,6 +63,12 @@ public final class SQLHintUtils {
         int hintKeyValueBeginIndex = getHintKeyValueBeginIndex(sql);
         String hintKeyValueText = sql.substring(hintKeyValueBeginIndex, sql.indexOf(SQL_COMMENT_SUFFIX, hintKeyValueBeginIndex));
         Map<String, String> hintKeyValues = getSQLHintKeyValues(hintKeyValueText);
+        if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.RISK_TYPE_KEY)) {
+            result.setRiskType(getHintValue(hintKeyValues, SQLHintPropertiesKey.RISK_TYPE_KEY));
+        }
+        if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.OPE_USER_KEY)) {
+            result.setOpeUser(getHintValue(hintKeyValues, SQLHintPropertiesKey.OPE_USER_KEY));
+        }
         if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.DATASOURCE_NAME_KEY)) {
             result.setDataSourceName(getHintValue(hintKeyValues, SQLHintPropertiesKey.DATASOURCE_NAME_KEY));
         }
