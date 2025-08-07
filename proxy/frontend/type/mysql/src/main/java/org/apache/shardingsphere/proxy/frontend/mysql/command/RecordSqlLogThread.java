@@ -2,6 +2,7 @@ package org.apache.shardingsphere.proxy.frontend.mysql.command;
 
 import com.google.gson.Gson;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.SensitiveSource;
@@ -17,8 +18,11 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Data
+@Slf4j(topic = "RecordSqlLogThread")
 public class RecordSqlLogThread implements Runnable{
     private String sourceIp;
     private String user;
@@ -29,6 +33,7 @@ public class RecordSqlLogThread implements Runnable{
     private String riskType;
     private String opeUser;
     private List<SensitiveSource> sensitiveSourceList;
+
 
     @Override
     public void run() {
@@ -42,6 +47,17 @@ public class RecordSqlLogThread implements Runnable{
         String logPassword = props.getValue(ConfigurationPropertyKey.LOG_PASSWORD).toString();
         String logApi = props.getValue(ConfigurationPropertyKey.LOG_API).toString();
         String logToken = props.getValue(ConfigurationPropertyKey.LOG_TOKEN).toString();
+        log.info(String.format("获取的参数,sourceIp:%s,user:%s,method:%s,detail:%s,riskType:%s,opeUser:%s,logUrl:%s,logUserName:%s,logPassword:%s,logApi:%s,logToken:%s",sourceIp,user,method,detail,riskType,opeUser,logUrl,logUserName,logPassword,logApi,logToken));
+
+
+
+
+
+
+
+
+
+
 
         String userId = user;
         if(user.contains("_")){
@@ -74,12 +90,16 @@ public class RecordSqlLogThread implements Runnable{
                 .addHeader("Content-Type", "application/x-www-form-urlencoded")
                 .addHeader("Authorization",logToken)
                 .build();
+
         try {
             Response response = client.newCall(request).execute();
             String body1 = response.body().string();
+            log.info("发送日志到dmp系统日志,响应body为{}",body1);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("发送日志到dmp审计日志失败",e);
         }
+
+
 
 
 
@@ -100,8 +120,8 @@ public class RecordSqlLogThread implements Runnable{
                 sensitiveSourceListStr=gson.toJson(this.sensitiveSourceList);
             }
             statement.execute(String.format("INSERT INTO ods.ODS_DDW_DSG_AUDIT_LOG (`opeTime`, `workcode`,`user`,`user_name`, `ip`, `method`, `sql`, `result`, `detail`,`total`, `sensitive_source_list_str`) VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s');", theTimeStr, userId,user,userName, sourceIp, method, sql,riskType,detail,total,sensitiveSourceListStr));
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            log.error("发送日志到数仓审计日志失败",e);
         }
     }
 }

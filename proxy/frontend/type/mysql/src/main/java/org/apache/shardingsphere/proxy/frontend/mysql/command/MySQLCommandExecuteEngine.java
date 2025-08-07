@@ -180,9 +180,6 @@ public final class MySQLCommandExecuteEngine implements CommandExecuteEngine {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute(recordSqlLogThread);
         executor.shutdown();
-        System.out.println("线程调用结束");
-
-        System.out.println(total);
     }
 
 
