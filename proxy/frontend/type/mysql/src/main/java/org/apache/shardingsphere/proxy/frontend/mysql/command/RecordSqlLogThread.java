@@ -59,7 +59,7 @@ public class RecordSqlLogThread implements Runnable{
 
 
 
-        String userId = user;
+        String userId = "1000";
         if(user.contains("_")){
             userId = user.split("_")[1];
         }
