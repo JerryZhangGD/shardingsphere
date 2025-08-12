@@ -32,6 +32,7 @@ public class RecordSqlLogThread implements Runnable{
     private Integer total;
     private String riskType;
     private String opeUser;
+    private String riskModule;
     private List<SensitiveSource> sensitiveSourceList;
 
 
@@ -47,7 +48,7 @@ public class RecordSqlLogThread implements Runnable{
         String logPassword = props.getValue(ConfigurationPropertyKey.LOG_PASSWORD).toString();
         String logApi = props.getValue(ConfigurationPropertyKey.LOG_API).toString();
         String logToken = props.getValue(ConfigurationPropertyKey.LOG_TOKEN).toString();
-        log.info(String.format("获取的参数,sourceIp:%s,user:%s,method:%s,detail:%s,riskType:%s,opeUser:%s,logUrl:%s,logUserName:%s,logPassword:%s,logApi:%s,logToken:%s",sourceIp,user,method,detail,riskType,opeUser,logUrl,logUserName,logPassword,logApi,logToken));
+        log.info(String.format("获取的参数,sourceIp:%s,user:%s,method:%s,detail:%s,riskType:%s,riskModule:%s,opeUser:%s,logUrl:%s,logUserName:%s,logPassword:%s,logApi:%s,logToken:%s",sourceIp,user,method,detail,riskType,riskModule,opeUser,logUrl,logUserName,logPassword,logApi,logToken));
 
 
 
@@ -119,7 +120,7 @@ public class RecordSqlLogThread implements Runnable{
             if(this.sensitiveSourceList!=null&&sensitiveSourceList.size()>0){
                 sensitiveSourceListStr=gson.toJson(this.sensitiveSourceList);
             }
-            statement.execute(String.format("INSERT INTO ods.ODS_DDW_DSG_AUDIT_LOG (`opeTime`, `workcode`,`user`,`user_name`, `ip`, `method`, `sql`, `result`, `detail`,`total`, `sensitive_source_list_str`) VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s', '%s');", theTimeStr, userId,user,userName, sourceIp, method, sql,riskType,detail,total,sensitiveSourceListStr));
+            statement.execute(String.format("INSERT INTO ods.ODS_DDW_DSG_AUDIT_LOG (`opeTime`, `workcode`,`user`,`user_name`, `ip`, `method`, `sql`, `risk_type`,`risk_module`, `detail`,`total`, `sensitive_source_list_str`) VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s', '%s');", theTimeStr, userId,user,userName, sourceIp, method, sql,riskType,riskModule,detail,total,sensitiveSourceListStr));
         } catch (Exception e) {
             log.error("发送日志到数仓审计日志失败",e);
         }

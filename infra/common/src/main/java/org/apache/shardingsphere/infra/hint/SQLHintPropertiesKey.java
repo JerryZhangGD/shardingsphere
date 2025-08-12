@@ -35,6 +35,8 @@ public enum SQLHintPropertiesKey implements TypedPropertyKey {
 
     RISK_TYPE_KEY("RISK_TYPE","riskType","",String.class),
 
+    RISK_MODULE_KEY("RISK_MODULE","riskModule","",String.class),
+
     OPE_USER_KEY("OPE_USER","opeUser","",String.class),
     
     /**

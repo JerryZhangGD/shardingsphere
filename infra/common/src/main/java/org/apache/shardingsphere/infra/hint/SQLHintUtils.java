@@ -66,6 +66,9 @@ public final class SQLHintUtils {
         if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.RISK_TYPE_KEY)) {
             result.setRiskType(getHintValue(hintKeyValues, SQLHintPropertiesKey.RISK_TYPE_KEY));
         }
+        if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.RISK_MODULE_KEY)) {
+            result.setRiskModule(getHintValue(hintKeyValues, SQLHintPropertiesKey.RISK_MODULE_KEY));
+        }
         if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.OPE_USER_KEY)) {
             result.setOpeUser(getHintValue(hintKeyValues, SQLHintPropertiesKey.OPE_USER_KEY));
         }

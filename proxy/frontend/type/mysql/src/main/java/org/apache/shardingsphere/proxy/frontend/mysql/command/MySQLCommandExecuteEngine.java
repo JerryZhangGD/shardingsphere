@@ -133,6 +133,7 @@ public final class MySQLCommandExecuteEngine implements CommandExecuteEngine {
         QueryContext queryContext = databaseConnectionManager.getConnectionSession().getQueryContext();
         String sql = queryContext.getSql();
         String riskType = "other";
+        String riskModule ="other";
         String opeUser ="";
         HintValueContext hintValueContext = queryContext.getHintValueContext();
         if(hintValueContext!=null){
@@ -143,6 +144,10 @@ public final class MySQLCommandExecuteEngine implements CommandExecuteEngine {
             String opeUser1 = hintValueContext.getOpeUser();
             if(StringUtils.isNotEmpty(opeUser1)){
                 opeUser = opeUser1;
+            }
+            String riskModule1 = hintValueContext.getRiskModule();
+            if(StringUtils.isNotEmpty(riskModule1)){
+                riskModule = riskModule1;
             }
         }
         String durationStr = duration+"ms";
@@ -170,6 +175,7 @@ public final class MySQLCommandExecuteEngine implements CommandExecuteEngine {
         recordSqlLogThread.setSourceIp(sourceIp);
         recordSqlLogThread.setTotal(total);
         recordSqlLogThread.setRiskType(riskType);
+        recordSqlLogThread.setRiskModule(riskModule);
         recordSqlLogThread.setSensitiveSourceList(sensitiveSourceList);
         recordSqlLogThread.setDetail("耗时: "+durationStr+", 行数: "+total);
 

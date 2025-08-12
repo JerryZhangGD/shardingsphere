@@ -54,6 +54,8 @@ public final class HintValueContext {
 
     private String riskType;
 
+    private String riskModule;
+
     private String opeUser;
     
     /**
