@@ -132,8 +132,8 @@ public final class MySQLCommandExecuteEngine implements CommandExecuteEngine {
 
         QueryContext queryContext = databaseConnectionManager.getConnectionSession().getQueryContext();
         String sql = queryContext.getSql();
-        String riskType = "other";
-        String riskModule ="other";
+        String riskType = "OTHER_RISK";
+        String riskModule ="其它模块";
         String opeUser ="";
         HintValueContext hintValueContext = queryContext.getHintValueContext();
         if(hintValueContext!=null){

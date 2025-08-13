@@ -26,6 +26,7 @@ import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementCont
 import org.apache.shardingsphere.infra.binder.context.statement.dml.SelectStatementContext;
 import org.apache.shardingsphere.infra.exception.kernel.metadata.HasNotAccessRightException;
 import org.apache.shardingsphere.infra.executor.checker.SQLExecutionChecker;
+import org.apache.shardingsphere.infra.hint.HintValueContext;
 import org.apache.shardingsphere.infra.metadata.ShardingSphereMetaData;
 import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
@@ -46,6 +47,8 @@ import org.apache.shardingsphere.sql.parser.statement.core.statement.dml.SelectS
 import org.apache.shardingsphere.sql.parser.statement.mysql.dml.MySQLSelectStatement;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 /**
@@ -173,7 +176,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         SQLStatementContext sqlStatementContext = queryContext.getSqlStatementContext();
         if(sqlStatementContext instanceof SelectStatementContext){//目前只支持查询语句
             SelectStatementContext selectStatementContext = (SelectStatementContext) sqlStatementContext;
-            fillAccessMap(username,metaData,selectStatementContext,accessMap,userLevel,sensitiveLevelMap);
+            fillAccessMap(username,metaData,selectStatementContext,accessMap,userLevel,sensitiveLevelMap,queryContext);
             /*SelectStatement sqlStatement = selectStatementContext.getSqlStatement();
             TablesContext tablesContext = selectStatementContext.getTablesContext();
             tablesContext.getSimpleTables().forEach(simpleTableSegment -> {
@@ -198,7 +201,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         return accessMap;
     }
 
-    private static void fillAccessMap(String username, ShardingSphereMetaData metaData, SelectStatementContext selectStatementContext, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap) {
+    private static void fillAccessMap(String username, ShardingSphereMetaData metaData, SelectStatementContext selectStatementContext, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap, QueryContext queryContext) {
         Map<String, Projection> columnLabelMapProjection = selectStatementContext.getProjectionsContext().getExpandProjections().stream().collect(Collectors.toMap(Projection::getColumnLabel, v -> v, (v1, v2) -> v2));
         ProjectionsContext projectionsContext = selectStatementContext.getProjectionsContext();
 
@@ -211,7 +214,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             Projection projection = columnLabelMapProjection.get(columnLabel1);
             List<ColumnSegment> columnSegmentList=getColumnSegmentListByProjectionSegment(projectionSegment);
             columnSegmentList.forEach(columnSegment -> {
-                fillAccessMapBySimpleTableSegmentMap(username,metaData,projection,columnSegment,from,accessMap,userLevel,sensitiveLevelMap);
+                fillAccessMapBySimpleTableSegmentMap(username,metaData,projection,columnSegment,from,accessMap,userLevel,sensitiveLevelMap,queryContext);
             });
         });
         Map<Integer, SelectStatementContext> subqueryContexts = selectStatementContext.getSubqueryContexts();
@@ -223,7 +226,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                 List<ColumnSegment> columnSegmentList=getColumnSegmentListByProjectionSegment(projectionSegment);
                 columnSegmentList.forEach(columnSegment -> {
                     String value = columnSegment.getIdentifier().getValue();
-                    fillAccessMapBySubqueryContexts(username,metaData,projection,columnSegment,subQueryContexts,accessMap,userLevel,sensitiveLevelMap);
+                    fillAccessMapBySubqueryContexts(username,metaData,projection,columnSegment,subQueryContexts,accessMap,userLevel,sensitiveLevelMap,queryContext);
                 });
 
             });
@@ -287,7 +290,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         return columnSegmentList;
     }
 
-    private static void fillAccessMapBySubqueryContexts(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Collection<SelectStatementContext> subQueryContexts, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap) {
+    private static void fillAccessMapBySubqueryContexts(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Collection<SelectStatementContext> subQueryContexts, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap, QueryContext queryContext) {
         subQueryContexts.forEach(selectStatementContext -> {
             SelectStatement sqlStatement = selectStatementContext.getSqlStatement();
             Optional<TableSegment> from = sqlStatement.getFrom();
@@ -299,14 +302,14 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             }
             List<ColumnSegment> subqueryColumnSegmentList = findSubqueryColumnSegmentList(columnSegment,projectionSegments);
             subqueryColumnSegmentList.forEach(subQueryColumnSegment -> {
-                fillAccessMapBySimpleTableSegmentMap(username, metaData, projection,subQueryColumnSegment,from,accessMap,userLevel,sensitiveLevelMap);
+                fillAccessMapBySimpleTableSegmentMap(username, metaData, projection,subQueryColumnSegment,from,accessMap,userLevel,sensitiveLevelMap,queryContext);
             });
 
             Map<Integer, SelectStatementContext> subqueryContexts = selectStatementContext.getSubqueryContexts();
             if(subqueryContexts!=null&&!subqueryContexts.isEmpty()){
                 Collection<SelectStatementContext> subQueryContexts2 = subqueryContexts.values();
                 subqueryColumnSegmentList.forEach(subqueryColumnSegment->{
-                    fillAccessMapBySubqueryContexts(username, metaData, projection,subqueryColumnSegment,subQueryContexts2,accessMap,userLevel,sensitiveLevelMap);
+                    fillAccessMapBySubqueryContexts(username, metaData, projection,subqueryColumnSegment,subQueryContexts2,accessMap,userLevel,sensitiveLevelMap,queryContext);
                 });
             }
         });
@@ -324,7 +327,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         return columnSegmentList;
     }
 
-    private static void fillAccessMapBySimpleTableSegmentMap(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Optional<TableSegment> from, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap) {
+    private static void fillAccessMapBySimpleTableSegmentMap(String username, ShardingSphereMetaData metaData, Projection projection, ColumnSegment columnSegment, Optional<TableSegment> from, Map<String, Map<String, List<String>>> accessMap, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap, QueryContext queryContext) {
         if (columnSegment.getColumnBoundInfo()!=null
                 && StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalColumn().getValue())
                 && StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalTable().getValue())
@@ -345,7 +348,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             }
             stringListMap.put(tableName,strings);
             accessMap.put(databaseName,stringListMap);
-            setProjectionSensitiveLevel(username,metaData,projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName);
+            setProjectionSensitiveLevel(username,metaData,projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName,queryContext);
         }else if (from.isPresent()&&(from.get() instanceof SimpleTableSegment)){
             SimpleTableSegment simpleTableSegment = (SimpleTableSegment)from.get();
             if(simpleTableSegment.getOwner().isPresent()&&simpleTableSegment.getTableName()!=null&&columnSegment.getColumnBoundInfo()!=null&& StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalColumn().getValue())){
@@ -365,7 +368,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                 }
                 stringListMap.put(tableName,strings);
                 accessMap.put(databaseName,stringListMap);
-                setProjectionSensitiveLevel(username, metaData, projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName);
+                setProjectionSensitiveLevel(username, metaData, projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName,queryContext);
             }
         } else if (from.isPresent()&&(from.get() instanceof JoinTableSegment)&&columnSegment.getOwner().isPresent()&&columnSegment.getColumnBoundInfo()!=null&& StringUtils.isNotEmpty(columnSegment.getColumnBoundInfo().getOriginalColumn().getValue())) {
             JoinTableSegment joinTableSegment = (JoinTableSegment) from.get();
@@ -392,7 +395,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                         }
                         stringListMap.put(tableName,strings);
                         accessMap.put(databaseName,stringListMap);
-                        setProjectionSensitiveLevel(username, metaData, projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName);
+                        setProjectionSensitiveLevel(username, metaData, projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName,queryContext);
                     }
                 }
             }
@@ -420,7 +423,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                         }
                         stringListMap.put(tableName,strings);
                         accessMap.put(databaseName,stringListMap);
-                        setProjectionSensitiveLevel(username, metaData, projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName);
+                        setProjectionSensitiveLevel(username, metaData, projection,userLevel,sensitiveLevelMap,databaseName,tableName,columnName,queryContext);
                     }
                 }
             }
@@ -428,7 +431,31 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         }
     }
 
-    private static void setProjectionSensitiveLevel(String username, ShardingSphereMetaData metaData, Projection projection, Integer userLevel, Map<String, Map<String, Map<String, SensitiveLevelColumnConfiguration>>> sensitiveLevelMap, String databaseName, String tableName, String columnName) {
+    private static void setProjectionSensitiveLevel(String username, ShardingSphereMetaData metaData, Projection projection, Integer userLevel, Map<String, Map<String, Map<String, SensitiveLevelColumnConfiguration>>> sensitiveLevelMap, String databaseName, String tableName, String columnName, QueryContext queryContext) {
+
+        String sql = queryContext.getSql();
+        String riskModule ="其它模块";
+        String opeUser ="";
+        HintValueContext hintValueContext = queryContext.getHintValueContext();
+        if(hintValueContext!=null){
+            String opeUser1 = hintValueContext.getOpeUser();
+            if(StringUtils.isNotEmpty(opeUser1)){
+                opeUser = opeUser1;
+            }
+            String riskModule1 = hintValueContext.getRiskModule();
+            if(StringUtils.isNotEmpty(riskModule1)){
+                riskModule = riskModule1;
+            }
+        }
+
+
+
+
+
+
+
+
+
 
         Integer currentSensitiveLevel = projection.getSensitiveLevel();
         Integer newSensitiveLevel = 0;
@@ -468,6 +495,22 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                         List<Map<String, Long>> recognizeResultMapList = sensitiveLevelColumnConfiguration.getRecognizeResultMapList();
                         if(recognizeResultMapList!=null&&!recognizeResultMapList.isEmpty()){
                             sensitiveSource.setRecognizeResultMapList(recognizeResultMapList);
+
+                            RecordAccessSensitiveColumnLogThread recordAccessSensitiveColumnLogThread = new RecordAccessSensitiveColumnLogThread();
+                            recordAccessSensitiveColumnLogThread.setUser(username);
+                            recordAccessSensitiveColumnLogThread.setSql(sql);
+                            recordAccessSensitiveColumnLogThread.setOpeUser(opeUser);
+                            recordAccessSensitiveColumnLogThread.setRiskModule(riskModule);
+                            recordAccessSensitiveColumnLogThread.setRecognizeResultMapList(recognizeResultMapList);
+                            recordAccessSensitiveColumnLogThread.setDatabaseName(databaseName);
+                            recordAccessSensitiveColumnLogThread.setTableName(tableName);
+                            recordAccessSensitiveColumnLogThread.setColumnName(columnName);
+                            recordAccessSensitiveColumnLogThread.setProps(metaData.getProps());
+
+
+                            ExecutorService executor = Executors.newSingleThreadExecutor();
+                            executor.execute(recordAccessSensitiveColumnLogThread);
+                            executor.shutdown();
                         }
                     }
                 }
