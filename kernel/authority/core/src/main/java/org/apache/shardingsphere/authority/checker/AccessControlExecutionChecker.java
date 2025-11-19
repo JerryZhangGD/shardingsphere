@@ -17,6 +17,7 @@
 
 package org.apache.shardingsphere.authority.checker;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shardingsphere.authority.rule.*;
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.Projection;
@@ -24,6 +25,7 @@ import org.apache.shardingsphere.infra.binder.context.segment.select.projection.
 import org.apache.shardingsphere.infra.binder.context.segment.select.projection.SensitiveSource;
 import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
 import org.apache.shardingsphere.infra.binder.context.statement.dml.SelectStatementContext;
+import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
 import org.apache.shardingsphere.infra.exception.kernel.metadata.HasNotAccessRightException;
 import org.apache.shardingsphere.infra.executor.checker.SQLExecutionChecker;
 import org.apache.shardingsphere.infra.hint.HintValueContext;
@@ -32,6 +34,7 @@ import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.user.Grantee;
 import org.apache.shardingsphere.infra.metadata.user.ShardingSphereUser;
 import org.apache.shardingsphere.infra.session.query.QueryContext;
+import org.apache.shardingsphere.infra.util.json.JsonUtils;
 import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.column.ColumnSegment;
 import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.combine.CombineSegment;
 import org.apache.shardingsphere.sql.parser.statement.core.segment.dml.datetime.DatetimeExpression;
@@ -98,9 +101,12 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
 
 
             Map<String, Map<String, List<String>>> accessMap = getAccessMapFromQueryContext(username,metaData,queryContext,userLevel,sensitiveLevelMap);
-            if(accessMap!=null&&!accessMap.isEmpty()){
+
+            Map<String, Map<String, List<String>>> hasNotCatalogPermissionAccessMap = filterHasNotCatalogPermissionAccessMap(username,metaData,accessMap);
+
+            if(hasNotCatalogPermissionAccessMap!=null&&!hasNotCatalogPermissionAccessMap.isEmpty()){
                 List<ShardingSphereDatabase> shardingSphereDatabaseList = new ArrayList<>();
-                accessMap.entrySet().forEach(entry ->{
+                hasNotCatalogPermissionAccessMap.entrySet().forEach(entry ->{
                     String databaseName = entry.getKey();
                     ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase(databaseName);
                     if(shardingSphereDatabase==null){
@@ -168,6 +174,145 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                 });
             }
         }
+    }
+
+    private Map<String, Map<String, List<String>>> filterHasNotCatalogPermissionAccessMap(String username, ShardingSphereMetaData metaData, Map<String, Map<String, List<String>>> accessMap) {
+        Map<String, Map<String, List<String>>> hasNotCatalogPermissionAccessMap = new HashMap<>();
+        if(accessMap==null||accessMap.isEmpty()){
+            return null;
+        }
+        ConfigurationProperties props = metaData.getProps();
+        String themeDomainAssetRelationListStr = (String) props.getProps().get("themeDomainAssetRelationList");
+        if(StringUtils.isEmpty(themeDomainAssetRelationListStr)){
+            return accessMap;
+        }
+        List<ThemeDomainAssetRelation> themeDomainAssetRelationList = JsonUtils.fromJsonString(themeDomainAssetRelationListStr, new TypeReference<List<ThemeDomainAssetRelation>>() {});
+        if(themeDomainAssetRelationList==null||themeDomainAssetRelationList.size()==0){
+            return accessMap;
+        }
+        ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase("ods");
+        if(shardingSphereDatabase==null){
+            return accessMap;
+        }
+        Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+        if(!singleRule.isPresent()){
+            return accessMap;
+        }
+
+        Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(username);
+        if(!accessControlUser.isPresent()){
+            return accessMap;
+        }
+        Map<Long, AccessControlCatalogRule> catalogs = accessControlUser.get().getCatalogs();
+        if(catalogs==null||catalogs.isEmpty()){
+            return accessMap;
+        }
+        Map<String,Map<Long,List<AssetType>>> tableFullNameMapThemeDomainIdMapAssetTypeList=getTableFullNameMapRel(themeDomainAssetRelationList);
+        if(tableFullNameMapThemeDomainIdMapAssetTypeList==null||tableFullNameMapThemeDomainIdMapAssetTypeList.isEmpty()){
+            return accessMap;
+        }
+
+        accessMap.entrySet().forEach(entry ->{
+            String databaseName = entry.getKey();
+            Map<String, List<String>> tableNameMapColumnList = entry.getValue();
+            Map<String, List<String>> stringListMap = hasNotCatalogPermissionAccessMap.get(databaseName);
+            if(stringListMap==null){
+                stringListMap = new HashMap<>();
+            }
+            for(Map.Entry<String,List<String>> entry1:tableNameMapColumnList.entrySet()){
+                String tableName = entry1.getKey();
+                List<String> columnNameList = entry1.getValue();
+                String tableFullName = databaseName+"."+tableName;
+                if(!tableFullNameMapThemeDomainIdMapAssetTypeList.containsKey(tableFullName)){
+                    stringListMap.put(tableName,columnNameList);
+                } else {
+                    Map<Long, List<AssetType>> themeDomainIdMapAssetTypeList = tableFullNameMapThemeDomainIdMapAssetTypeList.get(tableFullName);
+                    if(!checkCatalogPermission(themeDomainIdMapAssetTypeList,catalogs)){
+                        stringListMap.put(tableName,columnNameList);
+                    }
+                }
+            }
+            if(!stringListMap.isEmpty()){
+                hasNotCatalogPermissionAccessMap.put(databaseName,stringListMap);
+            }
+
+        });
+
+
+
+        return hasNotCatalogPermissionAccessMap;
+    }
+
+    private boolean checkCatalogPermission(Map<Long, List<AssetType>> themeDomainIdMapAssetTypeList, Map<Long, AccessControlCatalogRule> catalogs) {
+        boolean result = false;
+        if(themeDomainIdMapAssetTypeList==null||themeDomainIdMapAssetTypeList.isEmpty()||catalogs==null||catalogs.isEmpty()){
+            return result;
+        }
+        for(Map.Entry<Long,AccessControlCatalogRule> entry:catalogs.entrySet()){
+            Long themeDomainId = entry.getKey();
+            AccessControlCatalogRule rule = entry.getValue();
+            Date now = new Date();
+            if(themeDomainIdMapAssetTypeList.containsKey(themeDomainId)){
+                List<AssetType> assetTypeList = themeDomainIdMapAssetTypeList.get(themeDomainId);
+                if(assetTypeList.contains(AssetType.TABLE)&&rule.getAssetTableAccessFlag()!=null&&rule.getAssetTableAccessFlag()&&(rule.getAssetTableAccessTime()==null||rule.getAssetTableAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
+                if(assetTypeList.contains(AssetType.API)&&rule.getAssetApiAccessFlag()!=null&&rule.getAssetApiAccessFlag()&&(rule.getAssetApiAccessTime()==null||rule.getAssetApiAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
+                if(assetTypeList.contains(AssetType.INDICATOR)&&rule.getAssetIndicatorAccessFlag()!=null&&rule.getAssetIndicatorAccessFlag()&&(rule.getAssetIndicatorAccessTime()==null||rule.getAssetIndicatorAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
+                if(assetTypeList.contains(AssetType.REPORT_TABLE)&&rule.getAssetReportTableAccessFlag()!=null&&rule.getAssetReportTableAccessFlag()&&(rule.getAssetReportTableAccessTime()==null||rule.getAssetReportTableAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    private Map<String,Map<Long,List<AssetType>>> getTableFullNameMapRel(List<ThemeDomainAssetRelation> themeDomainAssetRelationList) {
+        Map<String,Map<Long,List<AssetType>>> tableFullNameMapThemeDomainIdMapAssetTypeList = new HashMap<>();
+        if(themeDomainAssetRelationList==null||themeDomainAssetRelationList.isEmpty()){
+            return null;
+        }
+        for(ThemeDomainAssetRelation themeDomainAssetRelation:themeDomainAssetRelationList){
+            Long themeDomainId = themeDomainAssetRelation.getThemeDomainId();
+            List<AssetToTableRelation> assetToTableRelationList = themeDomainAssetRelation.getAssetToTableRelationList();
+            if(assetToTableRelationList!=null&&!assetToTableRelationList.isEmpty()){
+                for(AssetToTableRelation assetToTableRelation:assetToTableRelationList){
+                    Set<String> fullTableNameSet = assetToTableRelation.getFullTableNameSet();
+                    if(fullTableNameSet!=null&&!fullTableNameSet.isEmpty()){
+                        for(String fullTableName:fullTableNameSet){
+                            Map<Long, List<AssetType>> themeDomainIdMapAssetTypeList = tableFullNameMapThemeDomainIdMapAssetTypeList.get(fullTableName);
+                            if(themeDomainIdMapAssetTypeList==null){
+                                themeDomainIdMapAssetTypeList = new HashMap<>();
+                            }
+                            List<AssetType> assetTypeList = themeDomainIdMapAssetTypeList.get(themeDomainId);
+                            if(assetTypeList==null){
+                                assetTypeList = new ArrayList<>();
+                            }
+                            if(!assetTypeList.contains(assetToTableRelation.getAssetType())){
+                                assetTypeList.add(assetToTableRelation.getAssetType());
+                            }
+                            if(!assetTypeList.isEmpty()){
+                                themeDomainIdMapAssetTypeList.put(themeDomainId,assetTypeList);
+                            }
+
+                            if(!themeDomainIdMapAssetTypeList.isEmpty()){
+                                tableFullNameMapThemeDomainIdMapAssetTypeList.put(fullTableName,themeDomainIdMapAssetTypeList);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return tableFullNameMapThemeDomainIdMapAssetTypeList;
     }
 
     private static Map<String, Map<String, List<String>>> getAccessMapFromQueryContext(String username, ShardingSphereMetaData metaData, QueryContext queryContext, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap) {

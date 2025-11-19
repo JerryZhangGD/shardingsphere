@@ -1,10 +1,7 @@
 package org.apache.shardingsphere.authority.rule;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AccessControlTableRuleConfiguration {
     private String tableName;
@@ -13,11 +10,22 @@ public class AccessControlTableRuleConfiguration {
     private Boolean desensitizeWhiteListFlag;
     private Map<String,Integer> columns;
 
-    public AccessControlTableRuleConfiguration(String tableName, Boolean allFlag, Boolean desensitizeWhiteListFlag, Map<String, Integer> columns) {
+    private Date expirationTime;
+
+    public AccessControlTableRuleConfiguration(String tableName, Boolean allFlag, Boolean desensitizeWhiteListFlag, Map<String, Integer> columns, Date expirationTime) {
         this.tableName = tableName;
         this.allFlag = allFlag;
         this.desensitizeWhiteListFlag = desensitizeWhiteListFlag;
         this.columns = columns;
+        this.expirationTime = expirationTime;
+    }
+
+    public Date getExpirationTime() {
+        return expirationTime;
+    }
+
+    public void setExpirationTime(Date expirationTime) {
+        this.expirationTime = expirationTime;
     }
 
     public String getTableName() {

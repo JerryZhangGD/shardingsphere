@@ -24,8 +24,10 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.shardingsphere.authority.rule.AccessControlCatalogRuleConfiguration;
 import org.apache.shardingsphere.authority.rule.AccessControlTableRuleConfiguration;
 import org.apache.shardingsphere.authority.rule.AccessControlUserRuleConfiguration;
+import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlCatalogRuleConfiguration;
 import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlTableRuleConfiguration;
 import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlUserRuleConfiguration;
 import org.apache.shardingsphere.infra.util.yaml.swapper.YamlConfigurationSwapper;
@@ -36,6 +38,7 @@ import org.apache.shardingsphere.infra.util.yaml.swapper.YamlConfigurationSwappe
 public final class YamlAccessControlUserRuleConfigurationSwapper implements YamlConfigurationSwapper<YamlAccessControlUserRuleConfiguration, AccessControlUserRuleConfiguration> {
 
     private YamlAccessControlTableRuleConfigurationSwapper tableSwapper = new YamlAccessControlTableRuleConfigurationSwapper();
+    private YamlAccessControlCatalogRuleConfigurationSwapper catalogSwapper = new YamlAccessControlCatalogRuleConfigurationSwapper();
 
     @Override
     public YamlAccessControlUserRuleConfiguration swapToYamlConfiguration(final AccessControlUserRuleConfiguration data) {
@@ -44,11 +47,8 @@ public final class YamlAccessControlUserRuleConfigurationSwapper implements Yaml
             result.setAllFlag(data.getAllFlag());
         }
         Map<String, YamlAccessControlTableRuleConfiguration> tables = result.getTables();
-
-
         result.setName(data.getName());
         result.setAllFlag(data.getAllFlag());
-
         if(tables==null){
             tables = new HashMap<>();
         }
@@ -57,17 +57,35 @@ public final class YamlAccessControlUserRuleConfigurationSwapper implements Yaml
         }
         result.setTables(tables);
 
+
+        Map<Long, YamlAccessControlCatalogRuleConfiguration> catalogs = result.getCatalogs();
+        if(catalogs==null){
+            catalogs = new HashMap<>();
+        }
+        for(AccessControlCatalogRuleConfiguration each : data.getCatalogs()){
+            catalogs.put(each.getThemeDomainId(),catalogSwapper.swapToYamlConfiguration(each));
+        }
+        result.setCatalogs(catalogs);
+
         return result;
     }
     
     @Override
     public AccessControlUserRuleConfiguration swapToObject(final YamlAccessControlUserRuleConfiguration yamlConfig) {
+        Collection<AccessControlCatalogRuleConfiguration> catalogs = new LinkedList<>();
+        for (Entry<Long, YamlAccessControlCatalogRuleConfiguration> entry : yamlConfig.getCatalogs().entrySet()) {
+            YamlAccessControlCatalogRuleConfiguration yamlAccessControlCatalogConfig = entry.getValue();
+            yamlAccessControlCatalogConfig.setThemeDomainId(entry.getKey());
+            catalogs.add(catalogSwapper.swapToObject(yamlAccessControlCatalogConfig));
+        }
+
+
         Collection<AccessControlTableRuleConfiguration> tables = new LinkedList<>();
         for (Entry<String, YamlAccessControlTableRuleConfiguration> entry : yamlConfig.getTables().entrySet()) {
             YamlAccessControlTableRuleConfiguration yamlAccessControlTableConfig = entry.getValue();
             yamlAccessControlTableConfig.setTableName(entry.getKey());
             tables.add(tableSwapper.swapToObject(yamlAccessControlTableConfig));
         }
-        return new AccessControlUserRuleConfiguration(yamlConfig.getAllFlag(),yamlConfig.getName(),tables);
+        return new AccessControlUserRuleConfiguration(yamlConfig.getAllFlag(),yamlConfig.getName(),catalogs,tables);
     }
 }

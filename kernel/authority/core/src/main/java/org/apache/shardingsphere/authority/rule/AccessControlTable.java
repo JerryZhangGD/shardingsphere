@@ -20,6 +20,7 @@ package org.apache.shardingsphere.authority.rule;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -34,4 +35,5 @@ public final class AccessControlTable {
     private final String name;
     private final Boolean desensitizeWhiteListFlag;
     private final Map<String,Integer> columns;
+    private final Date expirationTime;
 }

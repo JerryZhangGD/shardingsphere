@@ -394,15 +394,7 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
                         case Types.LONGNVARCHAR:
                         case Types.LONGVARCHAR:
                         case Types.VARCHAR:{
-                            if(projectionLength>0&&projectionLength<5){
-                                StringBuilder sb = new StringBuilder(projectionLength);
-                                for (int i = 0; i < projectionLength; i++) {
-                                    sb.append('*');
-                                }
-                                data = sb.toString();
-                            }else {
-                                data = "*****";
-                            }
+                            data = "*";
                             break;
                         }
                         case Types.BIT:
@@ -415,7 +407,7 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
                         case Types.DECIMAL:
                         case Types.NUMERIC:
                         case Types.BIGINT: {
-                            data = 0;
+                            data = -1;
                             break;
                         }
                         case Types.DATE:{

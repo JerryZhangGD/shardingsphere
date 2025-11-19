@@ -4,10 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.shardingsphere.infra.util.yaml.YamlConfiguration;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 @Setter
@@ -19,4 +16,6 @@ public class YamlAccessControlTableRuleConfiguration implements YamlConfiguratio
     private Boolean desensitizeWhiteListFlag;
 
     private Map<String,Integer> columns = new HashMap<>();
+
+    private Date expirationTime;
 }

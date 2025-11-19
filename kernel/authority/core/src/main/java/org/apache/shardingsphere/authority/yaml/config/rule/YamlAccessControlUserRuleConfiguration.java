@@ -15,5 +15,7 @@ public class YamlAccessControlUserRuleConfiguration implements YamlConfiguration
 
     private String name;
 
+    private Map<Long,YamlAccessControlCatalogRuleConfiguration> catalogs = new LinkedHashMap<>();
+
     private Map<String, YamlAccessControlTableRuleConfiguration> tables = new LinkedHashMap<>();
 }

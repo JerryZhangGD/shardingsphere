@@ -34,11 +34,12 @@ public final class YamlAccessControlTableRuleConfigurationSwapper implements Yam
         result.setAllFlag(data.getAllFlag());
         result.setDesensitizeWhiteListFlag(data.getDesensitizeWhiteListFlag());
         result.setColumns(data.getColumns());
+        result.setExpirationTime(data.getExpirationTime());
         return result;
     }
     
     @Override
     public AccessControlTableRuleConfiguration swapToObject(final YamlAccessControlTableRuleConfiguration yamlConfig) {
-        return new AccessControlTableRuleConfiguration(yamlConfig.getTableName(), yamlConfig.getAllFlag(),yamlConfig.getDesensitizeWhiteListFlag(),yamlConfig.getColumns());
+        return new AccessControlTableRuleConfiguration(yamlConfig.getTableName(), yamlConfig.getAllFlag(),yamlConfig.getDesensitizeWhiteListFlag(),yamlConfig.getColumns(),yamlConfig.getExpirationTime());
     }
 }

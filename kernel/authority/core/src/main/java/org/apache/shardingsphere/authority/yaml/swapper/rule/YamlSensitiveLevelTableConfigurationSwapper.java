@@ -18,12 +18,8 @@
 package org.apache.shardingsphere.authority.yaml.swapper.rule;
 
 
-import org.apache.shardingsphere.authority.rule.AccessControlTableRuleConfiguration;
-import org.apache.shardingsphere.authority.rule.AccessControlUserRuleConfiguration;
 import org.apache.shardingsphere.authority.rule.SensitiveLevelColumnConfiguration;
 import org.apache.shardingsphere.authority.rule.SensitiveLevelTableConfiguration;
-import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlTableRuleConfiguration;
-import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlUserRuleConfiguration;
 import org.apache.shardingsphere.authority.yaml.config.rule.YamlSensitiveLevelColumnConfiguration;
 import org.apache.shardingsphere.authority.yaml.config.rule.YamlSensitiveLevelTableConfiguration;
 import org.apache.shardingsphere.infra.util.yaml.swapper.YamlConfigurationSwapper;

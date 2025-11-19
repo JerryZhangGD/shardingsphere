@@ -14,5 +14,6 @@ import java.util.Collection;
 public class AccessControlUserRuleConfiguration {
     private Boolean allFlag;
     private final String name;
+    private final Collection<AccessControlCatalogRuleConfiguration> catalogs;
     private final Collection<AccessControlTableRuleConfiguration> tables;
 }
