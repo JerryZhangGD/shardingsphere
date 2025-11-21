@@ -100,7 +100,7 @@ public final class SensitiveLevelRule implements DatabaseRule, PartialRuleUpdate
     }
     
     private SensitiveLevelTableConfiguration getTableConfiguration(final String tableName, final SensitiveLevelRuleConfiguration toBeUpdatedRuleConfig) {
-        Optional<SensitiveLevelTableConfiguration> result = toBeUpdatedRuleConfig.getTables().stream().filter(table -> table.getName().equals(table)).findFirst();
+        Optional<SensitiveLevelTableConfiguration> result = toBeUpdatedRuleConfig.getTables().stream().filter(table -> table.getName().equals(tableName)).findFirst();
         Preconditions.checkState(result.isPresent());
         return result.get();
     }

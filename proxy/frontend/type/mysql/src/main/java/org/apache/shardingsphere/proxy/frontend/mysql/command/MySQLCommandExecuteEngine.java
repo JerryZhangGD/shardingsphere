@@ -127,65 +127,70 @@ public final class MySQLCommandExecuteEngine implements CommandExecuteEngine {
                     }
                 }
             }
-        }
 
 
-        QueryContext queryContext = databaseConnectionManager.getConnectionSession().getQueryContext();
-        String sql = queryContext.getSql();
-        String riskType = "OTHER_RISK";
-        String riskModule ="其它模块";
-        String opeUser ="";
-        HintValueContext hintValueContext = queryContext.getHintValueContext();
-        if(hintValueContext!=null){
-            String riskType1 = hintValueContext.getRiskType();
-            if(StringUtils.isNotEmpty(riskType1)){
-                riskType = riskType1;
-            }
-            String opeUser1 = hintValueContext.getOpeUser();
-            if(StringUtils.isNotEmpty(opeUser1)){
-                opeUser = opeUser1;
-            }
-            String riskModule1 = hintValueContext.getRiskModule();
-            if(StringUtils.isNotEmpty(riskModule1)){
-                riskModule = riskModule1;
-            }
-        }
-        String durationStr = duration+"ms";
-        String sourceIp = "";
-        String user = "";
-        ConnectionContext connectionContext = queryContext.getConnectionContext();
-        if(connectionContext!=null){
-            Grantee grantee = connectionContext.getGrantee();
-            if(grantee!=null){
-                String hostname = grantee.getHostname();
-                if(StringUtils.isNotEmpty(hostname)){
-                    sourceIp = hostname;
+            QueryContext queryContext = databaseConnectionManager.getConnectionSession().getQueryContext();
+            String sql = queryContext.getSql();
+            if(sql.toLowerCase().contains("ods") ||
+                    sql.toLowerCase().contains("dwd")||
+                    sql.toLowerCase().contains("dws")||
+                    sql.toLowerCase().contains("ads")||
+                    sql.toLowerCase().contains("dim"))
+            {
+                String riskType = "OTHER_RISK";
+                String riskModule ="其它模块";
+                String opeUser ="";
+                HintValueContext hintValueContext = queryContext.getHintValueContext();
+                if(hintValueContext!=null){
+                    String riskType1 = hintValueContext.getRiskType();
+                    if(StringUtils.isNotEmpty(riskType1)){
+                        riskType = riskType1;
+                    }
+                    String opeUser1 = hintValueContext.getOpeUser();
+                    if(StringUtils.isNotEmpty(opeUser1)){
+                        opeUser = opeUser1;
+                    }
+                    String riskModule1 = hintValueContext.getRiskModule();
+                    if(StringUtils.isNotEmpty(riskModule1)){
+                        riskModule = riskModule1;
+                    }
                 }
-                String username = grantee.getUsername();
-                if(StringUtils.isNotEmpty(username)){
-                    user = username;
+                String durationStr = duration+"ms";
+                String sourceIp = "";
+                String user = "";
+                ConnectionContext connectionContext = queryContext.getConnectionContext();
+                if(connectionContext!=null){
+                    Grantee grantee = connectionContext.getGrantee();
+                    if(grantee!=null){
+                        String hostname = grantee.getHostname();
+                        if(StringUtils.isNotEmpty(hostname)){
+                            sourceIp = hostname;
+                        }
+                        String username = grantee.getUsername();
+                        if(StringUtils.isNotEmpty(username)){
+                            user = username;
+                        }
+                    }
                 }
+                RecordSqlLogThread recordSqlLogThread = new RecordSqlLogThread();
+                recordSqlLogThread.setSql(sql);
+                recordSqlLogThread.setUser(user);
+                recordSqlLogThread.setOpeUser(opeUser);
+                recordSqlLogThread.setMethod("select");
+                recordSqlLogThread.setSourceIp(sourceIp);
+                recordSqlLogThread.setTotal(total);
+                recordSqlLogThread.setRiskType(riskType);
+                recordSqlLogThread.setRiskModule(riskModule);
+                recordSqlLogThread.setSensitiveSourceList(sensitiveSourceList);
+                recordSqlLogThread.setDetail("耗时: "+durationStr+", 行数: "+total);
+
+
+
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                executor.execute(recordSqlLogThread);
+                executor.shutdown();
             }
         }
-        RecordSqlLogThread recordSqlLogThread = new RecordSqlLogThread();
-        recordSqlLogThread.setSql(sql);
-        recordSqlLogThread.setUser(user);
-        recordSqlLogThread.setOpeUser(opeUser);
-        recordSqlLogThread.setMethod("select");
-        recordSqlLogThread.setSourceIp(sourceIp);
-        recordSqlLogThread.setTotal(total);
-        recordSqlLogThread.setRiskType(riskType);
-        recordSqlLogThread.setRiskModule(riskModule);
-        recordSqlLogThread.setSensitiveSourceList(sensitiveSourceList);
-        recordSqlLogThread.setDetail("耗时: "+durationStr+", 行数: "+total);
-
-
-
-
-
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        executor.execute(recordSqlLogThread);
-        executor.shutdown();
     }
 
 

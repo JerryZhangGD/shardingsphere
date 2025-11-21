@@ -75,7 +75,7 @@ public class RecordSqlLogThread implements Runnable{
         FormBody.Builder formBuilder = new FormBody.Builder();
         formBuilder.add("methodName",method);
         formBuilder.add("ip",sourceIp);
-        formBuilder.add("args",sql);
+        formBuilder.add("args",sql.replaceAll("\'","\\\\'").replaceAll("\"","\\\\\""));
         formBuilder.add("messages",detail);
         formBuilder.add("name","数据安全网关");
         formBuilder.add("results","SUCCESS");
@@ -111,18 +111,36 @@ public class RecordSqlLogThread implements Runnable{
 
 
 
-
-        try (
-                Connection connection = DriverManager.getConnection(logUrl,logUserName,logPassword);
-                Statement statement = connection.createStatement())
-        {
+        String executeSql = null;
+        Connection connection = null;
+        Statement statement = null;
+        try {
+            connection = DriverManager.getConnection(logUrl,logUserName,logPassword);
+            statement = connection.createStatement();
             String sensitiveSourceListStr = "";
             if(this.sensitiveSourceList!=null&&sensitiveSourceList.size()>0){
                 sensitiveSourceListStr=gson.toJson(this.sensitiveSourceList);
             }
-            statement.execute(String.format("INSERT INTO ods.ODS_DDW_DSG_AUDIT_LOG (`opeTime`, `workcode`,`user`,`user_name`, `ip`, `method`, `sql`, `risk_type`,`risk_module`, `detail`,`total`, `sensitive_source_list_str`) VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s', '%s');", theTimeStr, userId,user,userName, sourceIp, method, sql,riskType,riskModule,detail,total,sensitiveSourceListStr));
+            executeSql = String.format("INSERT INTO ods.ODS_DDW_DSG_AUDIT_LOG (`opeTime`, `workcode`,`user`,`user_name`, `ip`, `method`, `sql`, `risk_type`,`risk_module`, `detail`,`total`, `sensitive_source_list_str`) VALUES('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s','%s','%s', '%s');", theTimeStr, userId,user,userName, sourceIp, method, sql.replaceAll("\'","\\\\'"),riskType,riskModule,detail,total,sensitiveSourceListStr);
+            statement.execute(executeSql);
         } catch (Exception e) {
-            log.error("发送日志到数仓审计日志失败",e);
+            log.error("发送日志到doris数仓审计日志失败,sql为:"+executeSql);
+            log.error("发送日志到doris数仓审计日志失败,异常为:",e);
+        } finally {
+            if(connection!=null){
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if(statement!=null){
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
     }
 }
