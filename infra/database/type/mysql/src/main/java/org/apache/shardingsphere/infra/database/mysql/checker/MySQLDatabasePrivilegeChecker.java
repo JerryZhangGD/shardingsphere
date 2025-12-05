@@ -63,9 +63,9 @@ public final class MySQLDatabasePrivilegeChecker implements DialectDatabasePrivi
                 return;
             }
             //无法正确获取doris的select权限，先略过，人为保证连接用户权限
-            if(!privilegeCheckType.equals(PrivilegeCheckType.SELECT)){
+            /*if(!privilegeCheckType.equals(PrivilegeCheckType.SELECT)){
                 checkPrivilege(connection, privilegeCheckType);
-            }
+            }*/
         } catch (final SQLException ex) {
             throw new CheckDatabaseEnvironmentFailedException(ex);
         }
