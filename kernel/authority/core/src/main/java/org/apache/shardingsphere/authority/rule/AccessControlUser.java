@@ -38,6 +38,6 @@ public final class AccessControlUser {
         this.catalogs = config.getCatalogs().stream().collect(Collectors.toMap(AccessControlCatalogRuleConfiguration::getThemeDomainId,
                 each->new AccessControlCatalogRule(each.getThemeDomainId(),each.getAssetTableAccessFlag(),each.getAssetApiAccessFlag(),each.getAssetIndicatorAccessFlag(),each.getAssetReportTableAccessFlag(),each.getDesensitizeWhiteListFlag(),each.getExpirationTime(),each.getAssetTableAccessTime(),each.getAssetApiAccessTime(),each.getAssetIndicatorAccessTime(),each.getAssetReportTableAccessTime()),(v1,v2)->v1,CaseInsensitiveMap::new));
         this.tables = config.getTables().stream().collect(Collectors.toMap(AccessControlTableRuleConfiguration::getTableName,
-                each -> new AccessControlTable(each.getAllFlag(),each.getTableName(),each.getDesensitizeWhiteListFlag(),each.getColumns(),each.getExpirationTime()), (oldValue, currentValue) -> oldValue, CaseInsensitiveMap::new));
+                each -> new AccessControlTable(each.getAllFlag(),each.getTableName(),each.getDesensitizeWhiteListFlag(),each.getColumns(),each.getExpirationTime(),each.getFilterConditionSql()), (oldValue, currentValue) -> oldValue, CaseInsensitiveMap::new));
     }
 }

@@ -18,4 +18,6 @@ public class YamlAccessControlTableRuleConfiguration implements YamlConfiguratio
     private Map<String,Integer> columns = new HashMap<>();
 
     private Date expirationTime;
+
+    private String filterConditionSql;
 }

@@ -70,7 +70,7 @@ public final class KernelProcessor {
     
     private SQLRewriteResult rewrite(final QueryContext queryContext, final RuleMetaData globalRuleMetaData, final ConfigurationProperties props, final RouteContext routeContext,
                                      final ConnectionContext connectionContext) {
-        SQLRewriteEntry sqlRewriteEntry = new SQLRewriteEntry(queryContext.getUsedDatabase(), globalRuleMetaData, props);
+        SQLRewriteEntry sqlRewriteEntry = new SQLRewriteEntry(queryContext.getUsedDatabase(), globalRuleMetaData, props,queryContext);
         return sqlRewriteEntry.rewrite(queryContext, routeContext, connectionContext);
     }
     

@@ -36,4 +36,5 @@ public final class AccessControlTable {
     private final Boolean desensitizeWhiteListFlag;
     private final Map<String,Integer> columns;
     private final Date expirationTime;
+    private final String filterConditionSql;
 }

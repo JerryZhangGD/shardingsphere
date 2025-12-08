@@ -51,11 +51,14 @@ public final class SQLRewriteEntry {
     
     @SuppressWarnings("rawtypes")
     private final Map<ShardingSphereRule, SQLRewriteContextDecorator> decorators;
+
+    private final QueryContext queryContext;
     
-    public SQLRewriteEntry(final ShardingSphereDatabase database, final RuleMetaData globalRuleMetaData, final ConfigurationProperties props) {
+    public SQLRewriteEntry(final ShardingSphereDatabase database, final RuleMetaData globalRuleMetaData, final ConfigurationProperties props,final QueryContext queryContext) {
         this.database = database;
         this.globalRuleMetaData = globalRuleMetaData;
         this.props = props;
+        this.queryContext = queryContext;
         decorators = OrderedSPILoader.getServices(SQLRewriteContextDecorator.class, database.getRuleMetaData().getRules());
     }
     
@@ -90,7 +93,7 @@ public final class SQLRewriteEntry {
             return;
         }
         for (Entry<ShardingSphereRule, SQLRewriteContextDecorator> entry : decorators.entrySet()) {
-            entry.getValue().decorate(entry.getKey(), props, sqlRewriteContext, routeContext);
+            entry.getValue().decorate(entry.getKey(), props, sqlRewriteContext, routeContext,queryContext);
         }
     }
 }

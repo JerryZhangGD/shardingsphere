@@ -33,8 +33,8 @@ public final class RouteSQLBuilder extends AbstractSQLBuilder {
     
     public RouteSQLBuilder(final String sql, final List<SQLToken> sqlTokens, final RouteUnit routeUnit) {
         //todo 删除sqlTokens替换，直接使用原始sql，为了代理，如果是分库分表其它功能会报错
-        super(sql,new ArrayList<>());
-        //super(sql, sqlTokens);
+        //super(sql,new ArrayList<>());
+        super(sql, sqlTokens);
         this.routeUnit = routeUnit;
     }
     

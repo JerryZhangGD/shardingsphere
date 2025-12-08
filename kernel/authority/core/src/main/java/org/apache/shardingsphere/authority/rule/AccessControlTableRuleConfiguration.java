@@ -12,12 +12,15 @@ public class AccessControlTableRuleConfiguration {
 
     private Date expirationTime;
 
-    public AccessControlTableRuleConfiguration(String tableName, Boolean allFlag, Boolean desensitizeWhiteListFlag, Map<String, Integer> columns, Date expirationTime) {
+    private String filterConditionSql;
+
+    public AccessControlTableRuleConfiguration(String tableName, Boolean allFlag, Boolean desensitizeWhiteListFlag, Map<String, Integer> columns, Date expirationTime, String filterConditionSql) {
         this.tableName = tableName;
         this.allFlag = allFlag;
         this.desensitizeWhiteListFlag = desensitizeWhiteListFlag;
         this.columns = columns;
         this.expirationTime = expirationTime;
+        this.filterConditionSql = filterConditionSql;
     }
 
     public Date getExpirationTime() {
@@ -58,5 +61,13 @@ public class AccessControlTableRuleConfiguration {
 
     public void setColumns(Map<String, Integer> columns) {
         this.columns = columns;
+    }
+
+    public String getFilterConditionSql() {
+        return filterConditionSql;
+    }
+
+    public void setFilterConditionSql(String filterConditionSql) {
+        this.filterConditionSql = filterConditionSql;
     }
 }

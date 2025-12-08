@@ -19,8 +19,10 @@ package org.apache.shardingsphere.infra.rewrite.sql.token.common.generator.build
 
 import lombok.RequiredArgsConstructor;
 import org.apache.shardingsphere.infra.binder.context.statement.SQLStatementContext;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.rewrite.sql.token.common.generator.SQLTokenGenerator;
 import org.apache.shardingsphere.infra.rewrite.sql.token.common.generator.generic.RemoveTokenGenerator;
+import org.apache.shardingsphere.infra.session.connection.ConnectionContext;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -32,11 +34,16 @@ import java.util.LinkedList;
 public final class DefaultTokenGeneratorBuilder implements SQLTokenGeneratorBuilder {
     
     private final SQLStatementContext sqlStatementContext;
+
+    private final ConnectionContext connectionContext;
+
+    private final ShardingSphereDatabase database;
     
     @Override
     public Collection<SQLTokenGenerator> getSQLTokenGenerators() {
         Collection<SQLTokenGenerator> result = new LinkedList<>();
-        addSQLTokenGenerator(result, new RemoveTokenGenerator());
+        //todo 这里加去除库名的token，已被排除
+        //addSQLTokenGenerator(result, new RemoveTokenGenerator());
         return result;
     }
     

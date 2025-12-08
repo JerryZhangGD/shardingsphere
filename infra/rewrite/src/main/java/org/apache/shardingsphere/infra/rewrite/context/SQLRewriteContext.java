@@ -67,7 +67,7 @@ public final class SQLRewriteContext {
         parameters = params;
         this.connectionContext = connectionContext;
         if (!hintValueContext.isSkipSQLRewrite()) {
-            addSQLTokenGenerators(new DefaultTokenGeneratorBuilder(sqlStatementContext).getSQLTokenGenerators());
+            addSQLTokenGenerators(new DefaultTokenGeneratorBuilder(sqlStatementContext,connectionContext,database).getSQLTokenGenerators());
         }
         parameterBuilder = containsInsertValues(sqlStatementContext)
                 ? new GroupedParameterBuilder(((InsertStatementContext) sqlStatementContext).getGroupedParameters(), ((InsertStatementContext) sqlStatementContext).getOnDuplicateKeyUpdateParameters())

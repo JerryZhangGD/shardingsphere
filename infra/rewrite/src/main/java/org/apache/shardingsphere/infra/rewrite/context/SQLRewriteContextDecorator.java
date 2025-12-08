@@ -20,6 +20,7 @@ package org.apache.shardingsphere.infra.rewrite.context;
 import org.apache.shardingsphere.infra.config.props.ConfigurationProperties;
 import org.apache.shardingsphere.infra.route.context.RouteContext;
 import org.apache.shardingsphere.infra.rule.ShardingSphereRule;
+import org.apache.shardingsphere.infra.session.query.QueryContext;
 import org.apache.shardingsphere.infra.spi.annotation.SingletonSPI;
 import org.apache.shardingsphere.infra.spi.type.ordered.OrderedSPI;
 
@@ -39,5 +40,5 @@ public interface SQLRewriteContextDecorator<T extends ShardingSphereRule> extend
      * @param sqlRewriteContext SQL rewrite context to be decorated
      * @param routeContext route context
      */
-    void decorate(T rule, ConfigurationProperties props, SQLRewriteContext sqlRewriteContext, RouteContext routeContext);
+    void decorate(T rule, ConfigurationProperties props, SQLRewriteContext sqlRewriteContext, RouteContext routeContext, QueryContext queryContext);
 }
