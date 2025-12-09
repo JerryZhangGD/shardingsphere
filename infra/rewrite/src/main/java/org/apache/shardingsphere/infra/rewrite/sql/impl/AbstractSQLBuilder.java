@@ -25,12 +25,15 @@ import org.apache.shardingsphere.infra.rewrite.sql.token.common.pojo.generic.Com
 
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Abstract SQL builder.
  */
 @RequiredArgsConstructor
 public abstract class AbstractSQLBuilder implements SQLBuilder {
+    private static final Logger LOGGER = Logger.getLogger(AbstractSQLBuilder.class.getName());
     
     private final String sql;
     
@@ -52,12 +55,14 @@ public abstract class AbstractSQLBuilder implements SQLBuilder {
             }
             result.append(getConjunctionText(each));
         }
+        LOGGER.log(Level.INFO,"权限过滤过后的sql语句为:"+result.toString());
         return result.toString();
     }
     
     protected abstract String getSQLTokenText(SQLToken sqlToken);
     
     private String getComposableSQLTokenText(final ComposableSQLToken composableSQLToken) {
+
         StringBuilder result = new StringBuilder();
         for (SQLToken each : composableSQLToken.getSqlTokens()) {
             result.append(getSQLTokenText(each));

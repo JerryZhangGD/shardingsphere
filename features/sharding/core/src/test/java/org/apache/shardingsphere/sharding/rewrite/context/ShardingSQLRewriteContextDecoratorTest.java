@@ -42,7 +42,7 @@ class ShardingSQLRewriteContextDecoratorTest {
         when(sqlRewriteContext.getDatabase()).thenReturn(mock(ShardingSphereDatabase.class));
         when(sqlRewriteContext.getParameters()).thenReturn(Collections.singletonList(new Object()));
         when(sqlRewriteContext.getSqlStatementContext()).thenReturn(mock(SQLStatementContext.class, RETURNS_DEEP_STUBS));
-        new ShardingSQLRewriteContextDecorator().decorate(mock(ShardingRule.class), mock(ConfigurationProperties.class), sqlRewriteContext, mock(RouteContext.class));
+        new ShardingSQLRewriteContextDecorator().decorate(mock(ShardingRule.class), mock(ConfigurationProperties.class), sqlRewriteContext, mock(RouteContext.class),null);
         assertTrue(sqlRewriteContext.getSqlTokens().isEmpty());
     }
     
@@ -54,7 +54,7 @@ class ShardingSQLRewriteContextDecoratorTest {
         when(sqlRewriteContext.getSqlStatementContext()).thenReturn(insertStatementContext);
         ShardingRule shardingRule = mock(ShardingRule.class);
         when(shardingRule.findShardingTable("t_order")).thenReturn(Optional.empty());
-        new ShardingSQLRewriteContextDecorator().decorate(shardingRule, mock(ConfigurationProperties.class), sqlRewriteContext, mock(RouteContext.class));
+        new ShardingSQLRewriteContextDecorator().decorate(shardingRule, mock(ConfigurationProperties.class), sqlRewriteContext, mock(RouteContext.class),null);
         assertTrue(sqlRewriteContext.getSqlTokens().isEmpty());
     }
 }

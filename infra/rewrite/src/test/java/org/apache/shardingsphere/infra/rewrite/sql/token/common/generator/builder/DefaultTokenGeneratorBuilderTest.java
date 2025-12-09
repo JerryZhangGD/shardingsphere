@@ -60,7 +60,7 @@ class DefaultTokenGeneratorBuilderTest {
     }
     
     private void assertGetSQLTokenGenerators(final SQLStatementContext sqlStatementContext) {
-        DefaultTokenGeneratorBuilder defaultTokenGeneratorBuilder = new DefaultTokenGeneratorBuilder(sqlStatementContext);
+        DefaultTokenGeneratorBuilder defaultTokenGeneratorBuilder = new DefaultTokenGeneratorBuilder(sqlStatementContext,null,null);
         Collection<SQLTokenGenerator> sqlTokenGenerators = defaultTokenGeneratorBuilder.getSQLTokenGenerators();
         assertThat(sqlTokenGenerators.size(), is(1));
         Iterator<SQLTokenGenerator> iterator = sqlTokenGenerators.iterator();

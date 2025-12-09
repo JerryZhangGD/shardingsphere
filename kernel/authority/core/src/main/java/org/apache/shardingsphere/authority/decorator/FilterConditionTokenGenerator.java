@@ -81,7 +81,7 @@ public class FilterConditionTokenGenerator implements CollectionSQLTokenGenerato
                                                             subSelectSql.append(dbName).append(".").append(tableName).append(" where ").append(filterConditionSql).append(") ");
                                                             if(!simpleTableSegment.getAlias().isPresent()){
                                                                 Date date = new Date();
-                                                                subSelectSql.append(" as result_"+date.getTime());
+                                                                subSelectSql.append(" as result_"+startIndex+date.getTime());
                                                             }
                                                             FilterConditionToken filterConditionToken = new FilterConditionToken(startIndex,stopIndex,subSelectSql.toString());
                                                             result.add(filterConditionToken);

@@ -38,7 +38,7 @@ class EncryptSQLRewriteContextDecoratorTest {
         SQLRewriteContext sqlRewriteContext = mock(SQLRewriteContext.class);
         CommonSQLStatementContext sqlStatementContext = mock(CommonSQLStatementContext.class, RETURNS_DEEP_STUBS);
         when(sqlRewriteContext.getSqlStatementContext()).thenReturn(sqlStatementContext);
-        encryptSQLRewriteContextDecorator.decorate(mock(EncryptRule.class), mock(ConfigurationProperties.class), sqlRewriteContext, mock(RouteContext.class));
+        encryptSQLRewriteContextDecorator.decorate(mock(EncryptRule.class), mock(ConfigurationProperties.class), sqlRewriteContext, mock(RouteContext.class),null);
         assertTrue(sqlRewriteContext.getSqlTokens().isEmpty());
     }
 }

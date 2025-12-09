@@ -58,17 +58,18 @@ public final class MySQLDatabasePrivilegeChecker implements DialectDatabasePrivi
     
     @Override
     public void check(final DataSource dataSource, final PrivilegeCheckType privilegeCheckType) {
-        try (Connection connection = dataSource.getConnection()) {
+        return;
+        /*try (Connection connection = dataSource.getConnection()) {
             if (PrivilegeCheckType.XA == privilegeCheckType && MYSQL_MAJOR_VERSION_8 != connection.getMetaData().getDatabaseMajorVersion()) {
                 return;
             }
             //无法正确获取doris的select权限，先略过，人为保证连接用户权限
-            /*if(!privilegeCheckType.equals(PrivilegeCheckType.SELECT)){
+            *//*if(!privilegeCheckType.equals(PrivilegeCheckType.SELECT)){
                 checkPrivilege(connection, privilegeCheckType);
-            }*/
+            }*//*
         } catch (final SQLException ex) {
             throw new CheckDatabaseEnvironmentFailedException(ex);
-        }
+        }*/
     }
     
     private void checkPrivilege(final Connection connection, final PrivilegeCheckType privilegeCheckType) {
