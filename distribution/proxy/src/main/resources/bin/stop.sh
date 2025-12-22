@@ -22,7 +22,7 @@ DEPLOY_BIN="$(dirname "${BASH_SOURCE-$0}")"
 cd "${DEPLOY_BIN}/../" || exit;
 DEPLOY_DIR="$(pwd)"
 
-PIDS=$(pgrep  -f  "java.*$DEPLOY_DIR")
+PIDS=$(pgrep  -f  "java.*org.apache.shardingsphere.proxy.Bootstrap")
 if [ -z "$PIDS" ]; then
     echo "ERROR: The $SERVER_NAME does not started!"
     exit 1
@@ -30,7 +30,7 @@ fi
 
 echo -e "Stopping the $SERVER_NAME ...\c"
 for PID in ${PIDS} ; do
-    kill "${PID}" > /dev/null 2>&1
+    kill -9 "${PID}" > /dev/null 2>&1
 done
 
 COUNT=0
