@@ -26,10 +26,7 @@ import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shardingsphere.infra.util.json.JsonUtils;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Hint value context.
@@ -76,7 +73,14 @@ public final class HintValueContext {
     public void setThemeDomainIdListStr(String themeDomainIdListStr) {
         this.themeDomainIdListStr = themeDomainIdListStr;
         if(StringUtils.isNotEmpty(themeDomainIdListStr)){
-            themeDomainIdList = JsonUtils.fromJsonString(themeDomainIdListStr, new TypeReference<List<Long>>() {});
+            List<Long> themeDomainIdList1 = new ArrayList<>();
+            String[] splits = themeDomainIdListStr.split("-");
+            for(String split:splits){
+                themeDomainIdList1.add(Long.valueOf(split));
+            }
+            if(themeDomainIdList1.size()>0){
+                themeDomainIdList = themeDomainIdList1;
+            }
         }
     }
 
