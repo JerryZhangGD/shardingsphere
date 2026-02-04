@@ -71,8 +71,8 @@ public final class SingleStandardRouteEngine implements SingleRouteEngine {
         if (sqlStatement instanceof DDLStatement) {
             routeDDLStatement(routeContext, rule);
         } else {
-            boolean allTablesInSameComputeNode = rule.isAllTablesInSameComputeNode(getDataNodes(routeContext), singleTables);
-            ShardingSpherePreconditions.checkState(allTablesInSameComputeNode, () -> new UnsupportedSQLOperationException("all tables must be in the same compute node"));
+            /*boolean allTablesInSameComputeNode = rule.isAllTablesInSameComputeNode(getDataNodes(routeContext), singleTables);
+            ShardingSpherePreconditions.checkState(allTablesInSameComputeNode, () -> new UnsupportedSQLOperationException("all tables must be in the same compute node"));*/
             fillRouteContext(rule, routeContext, singleTables);
         }
     }

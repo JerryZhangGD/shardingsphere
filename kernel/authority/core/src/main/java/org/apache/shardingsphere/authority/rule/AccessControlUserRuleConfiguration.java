@@ -16,4 +16,5 @@ public class AccessControlUserRuleConfiguration {
     private final String name;
     private final Collection<AccessControlCatalogRuleConfiguration> catalogs;
     private final Collection<AccessControlTableRuleConfiguration> tables;
+    private final Collection<AccessControlAssetRuleConfiguration> assets;
 }

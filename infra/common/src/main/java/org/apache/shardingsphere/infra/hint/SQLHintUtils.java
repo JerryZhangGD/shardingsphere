@@ -63,6 +63,20 @@ public final class SQLHintUtils {
         int hintKeyValueBeginIndex = getHintKeyValueBeginIndex(sql);
         String hintKeyValueText = sql.substring(hintKeyValueBeginIndex, sql.indexOf(SQL_COMMENT_SUFFIX, hintKeyValueBeginIndex));
         Map<String, String> hintKeyValues = getSQLHintKeyValues(hintKeyValueText);
+        if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.ASSET_ID)) {
+            result.setAssetId(Long.valueOf(getHintValue(hintKeyValues, SQLHintPropertiesKey.ASSET_ID)));
+        }
+        if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.ASSET_TYPE)) {
+            result.setAssetType(getHintValue(hintKeyValues, SQLHintPropertiesKey.ASSET_TYPE));
+        }
+        if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.ASSET_NAME)) {
+            result.setAssetName(getHintValue(hintKeyValues, SQLHintPropertiesKey.ASSET_NAME));
+        }
+        if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.THEME_DOMAIN_ID_LIST_STR)) {
+            result.setThemeDomainIdListStr(getHintValue(hintKeyValues, SQLHintPropertiesKey.THEME_DOMAIN_ID_LIST_STR));
+        }
+
+
         if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.RISK_TYPE_KEY)) {
             result.setRiskType(getHintValue(hintKeyValues, SQLHintPropertiesKey.RISK_TYPE_KEY));
         }

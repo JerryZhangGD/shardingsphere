@@ -27,7 +27,19 @@ import org.apache.shardingsphere.infra.props.TypedPropertyKey;
 @RequiredArgsConstructor
 @Getter
 public enum SQLHintPropertiesKey implements TypedPropertyKey {
-    
+
+
+    /**
+     * 用于判断指标资产和API资产的权限
+     */
+    ASSET_ID("ASSET_ID","assetId","",String.class),
+
+    ASSET_TYPE("ASSET_TYPE","assetType","",String.class),
+
+    ASSET_NAME("ASSET_NAME","assetName","",String.class),
+
+    THEME_DOMAIN_ID_LIST_STR("THEME_DOMAIN_ID_LIST_STR","themeDomainIdListStr","",String.class),
+
     /**
      * Hint data source name.
      */

@@ -100,80 +100,169 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             });
 
 
-            Map<String, Map<String, List<String>>> accessMap = getAccessMapFromQueryContext(username,metaData,queryContext,userLevel,sensitiveLevelMap);
 
-            Map<String, Map<String, List<String>>> hasNotCatalogPermissionAccessMap = filterHasNotCatalogPermissionAccessMap(username,metaData,accessMap);
 
-            if(hasNotCatalogPermissionAccessMap!=null&&!hasNotCatalogPermissionAccessMap.isEmpty()){
-                List<ShardingSphereDatabase> shardingSphereDatabaseList = new ArrayList<>();
-                hasNotCatalogPermissionAccessMap.entrySet().forEach(entry ->{
-                    String databaseName = entry.getKey();
-                    ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase(databaseName);
-                    if(shardingSphereDatabase==null){
-                        throw new HasNotAccessRightException(databaseName);
-                    }else{
-                        shardingSphereDatabaseList.add(shardingSphereDatabase);
-                        Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
-                        if(!singleRule.isPresent()){
+
+            HintValueContext hintValueContext = queryContext.getHintValueContext();
+            String assetType = hintValueContext.getAssetType();
+            Long assetId = hintValueContext.getAssetId();
+            String assetName = hintValueContext.getAssetName();
+            //todo 指标和api进行权限判断,且不用脱敏，后面要指标和api脱敏的话，另行开发，不在上面的getAccessMapFromQueryContext中进行脱敏
+            if(StringUtils.isNotEmpty(assetType)&&assetId!=null&&("INDICATOR".equals(assetType)||"API".equals(assetType))){
+                List<Long> themeDomainIdList = hintValueContext.getThemeDomainIdList();
+                filterIndicatorAssetOrApiAssetPermission(username,metaData,queryContext,assetId,assetType,themeDomainIdList,assetName);
+            } else {//todo 对数据表进行权限判断和脱敏设置
+                Map<String, Map<String, List<String>>> accessMap = getAccessMapFromQueryContext(username,metaData,queryContext,userLevel,sensitiveLevelMap);
+
+                Map<String, Map<String, List<String>>> hasNotCatalogPermissionAccessMap = filterHasNotCatalogPermissionAccessMap(username,metaData,accessMap);
+
+                if(hasNotCatalogPermissionAccessMap!=null&&!hasNotCatalogPermissionAccessMap.isEmpty()){
+                    List<ShardingSphereDatabase> shardingSphereDatabaseList = new ArrayList<>();
+                    hasNotCatalogPermissionAccessMap.entrySet().forEach(entry ->{
+                        String databaseName = entry.getKey();
+                        ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase(databaseName);
+                        if(shardingSphereDatabase==null){
                             throw new HasNotAccessRightException(databaseName);
-                        }else {
-                            Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(user.get().getGrantee().getUsername());
-                            if(!accessControlUser.isPresent()){
+                        }else{
+                            shardingSphereDatabaseList.add(shardingSphereDatabase);
+                            Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+                            if(!singleRule.isPresent()){
                                 throw new HasNotAccessRightException(databaseName);
                             }else {
-                                AccessControlUser accessControlUser1 = accessControlUser.get();
-                                if(!accessControlUser1.getAllFlag()){
-                                    Map<String, List<String>> tableMapColumnList = entry.getValue();
-                                    Map<String, AccessControlTable> tables = accessControlUser1.getTables();
-                                    List<String> wantToAccessTableNameList = tableMapColumnList.keySet().stream().collect(Collectors.toList());
-                                    List<String> hasRightTableNameList = tables.keySet().stream().map(tableName->tableName.toLowerCase()).collect(Collectors.toList());
-                                    if(wantToAccessTableNameList!=null&&!wantToAccessTableNameList.isEmpty()){
-                                        if(hasRightTableNameList==null&&hasRightTableNameList.isEmpty()){
-                                            throw new HasNotAccessRightException(databaseName,wantToAccessTableNameList);
-                                        }
-                                        List<String> hasNotRightTableNameList = new ArrayList<>();
-                                        wantToAccessTableNameList.forEach(tableName->{
-                                            if(!hasRightTableNameList.contains(tableName.toLowerCase())){
-                                                hasNotRightTableNameList.add(tableName);
+                                Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(user.get().getGrantee().getUsername());
+                                if(!accessControlUser.isPresent()){
+                                    throw new HasNotAccessRightException(databaseName);
+                                }else {
+                                    AccessControlUser accessControlUser1 = accessControlUser.get();
+                                    if(!accessControlUser1.getAllFlag()){
+                                        Map<String, List<String>> tableMapColumnList = entry.getValue();
+                                        Map<String, AccessControlTable> tables = accessControlUser1.getTables();
+                                        List<String> wantToAccessTableNameList = tableMapColumnList.keySet().stream().collect(Collectors.toList());
+                                        List<String> hasRightTableNameList = tables.keySet().stream().map(tableName->tableName.toLowerCase()).collect(Collectors.toList());
+                                        if(wantToAccessTableNameList!=null&&!wantToAccessTableNameList.isEmpty()){
+                                            if(hasRightTableNameList==null&&hasRightTableNameList.isEmpty()){
+                                                throw new HasNotAccessRightException(databaseName,wantToAccessTableNameList);
                                             }
-                                        });
-                                        if(!hasNotRightTableNameList.isEmpty()){
-                                            throw new HasNotAccessRightException(databaseName,hasNotRightTableNameList);
-                                        }
-                                        tableMapColumnList.entrySet().forEach(entry1->{
-                                            String tableName = entry1.getKey();
-                                            AccessControlTable accessControlTable = tables.get(tableName);
-                                            if(accessControlTable==null){
-                                                throw new HasNotAccessRightException(databaseName, Collections.singletonList(tableName));
-                                            }else if(!accessControlTable.getAllFlag()){
-                                                List<String> hasRightColumnList = accessControlTable.getColumns().keySet().stream().collect(Collectors.toList());
-                                                List<String> wantAccessColumnList = tableMapColumnList.get(tableName);
-                                                if(wantAccessColumnList!=null||!wantAccessColumnList.isEmpty()){
-                                                    if(hasRightColumnList==null||hasRightColumnList.isEmpty()){
-                                                        throw new HasNotAccessRightException(databaseName,tableName,wantAccessColumnList);
-                                                    }
-                                                    List<String> collect = hasRightColumnList.stream().map(columnName -> columnName.toLowerCase()).collect(Collectors.toList());
-                                                    List<String> hasNotAccessConlumnList = new ArrayList<>();
-                                                    wantAccessColumnList.forEach(columnName->{
-                                                        if(!collect.contains(columnName.toLowerCase())){
-                                                            hasNotAccessConlumnList.add(columnName);
+                                            List<String> hasNotRightTableNameList = new ArrayList<>();
+                                            wantToAccessTableNameList.forEach(tableName->{
+                                                if(!hasRightTableNameList.contains(tableName.toLowerCase())){
+                                                    hasNotRightTableNameList.add(tableName);
+                                                }
+                                            });
+                                            if(!hasNotRightTableNameList.isEmpty()){
+                                                throw new HasNotAccessRightException(databaseName,hasNotRightTableNameList);
+                                            }
+                                            tableMapColumnList.entrySet().forEach(entry1->{
+                                                String tableName = entry1.getKey();
+                                                AccessControlTable accessControlTable = tables.get(tableName);
+                                                if(accessControlTable==null){
+                                                    throw new HasNotAccessRightException(databaseName, Collections.singletonList(tableName));
+                                                }else if(!accessControlTable.getAllFlag()){
+                                                    List<String> hasRightColumnList = accessControlTable.getColumns().keySet().stream().collect(Collectors.toList());
+                                                    List<String> wantAccessColumnList = tableMapColumnList.get(tableName);
+                                                    if(wantAccessColumnList!=null||!wantAccessColumnList.isEmpty()){
+                                                        if(hasRightColumnList==null||hasRightColumnList.isEmpty()){
+                                                            throw new HasNotAccessRightException(databaseName,tableName,wantAccessColumnList);
                                                         }
-                                                    });
-                                                    if(!hasNotAccessConlumnList.isEmpty()){
-                                                        throw new HasNotAccessRightException(databaseName,tableName,hasNotAccessConlumnList);
+                                                        List<String> collect = hasRightColumnList.stream().map(columnName -> columnName.toLowerCase()).collect(Collectors.toList());
+                                                        List<String> hasNotAccessConlumnList = new ArrayList<>();
+                                                        wantAccessColumnList.forEach(columnName->{
+                                                            if(!collect.contains(columnName.toLowerCase())){
+                                                                hasNotAccessConlumnList.add(columnName);
+                                                            }
+                                                        });
+                                                        if(!hasNotAccessConlumnList.isEmpty()){
+                                                            throw new HasNotAccessRightException(databaseName,tableName,hasNotAccessConlumnList);
+                                                        }
                                                     }
                                                 }
+                                            });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    });
+                }
+            }
+        }
+    }
+
+    private void filterIndicatorAssetOrApiAssetPermission(String username, ShardingSphereMetaData metaData, QueryContext queryContext, Long assetId, String assetType, List<Long> themeDomainIdList, String assetName) {
+        //1. 主题域权限判断
+        if(themeDomainIdList!=null&&themeDomainIdList.size()>0){
+            ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase("ods");
+            if(shardingSphereDatabase!=null){
+                Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+                if(singleRule.isPresent()){
+                    Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(username);
+                    if(accessControlUser.isPresent()){
+                        Map<Long, AccessControlCatalogRule> catalogs = accessControlUser.get().getCatalogs();
+                        if(catalogs!=null){
+                            for(Long themeDomainId:themeDomainIdList){
+                                AccessControlCatalogRule accessControlCatalogRule = catalogs.get(themeDomainId);
+                                if(accessControlCatalogRule!=null){
+                                    switch (assetType){
+                                        case "INDICATOR":{
+                                            Date now = new Date();
+                                            Boolean assetIndicatorAccessFlag = accessControlCatalogRule.getAssetIndicatorAccessFlag();
+                                            Date assetIndicatorAccessTime = accessControlCatalogRule.getAssetIndicatorAccessTime();
+                                            //有该主题域指标资产权限，且没有过期
+                                            if(assetIndicatorAccessFlag!=null&&assetIndicatorAccessTime!=null&&assetIndicatorAccessFlag&&assetIndicatorAccessTime.after(now)){
+                                                return;
                                             }
-                                        });
+                                            break;
+                                        }
+                                        case "API":{
+                                            Date now = new Date();
+                                            Boolean assetApiAccessFlag = accessControlCatalogRule.getAssetApiAccessFlag();
+                                            Date assetApiAccessTime = accessControlCatalogRule.getAssetApiAccessTime();
+                                            //有该主题域名API资产权限，且没有过期
+                                            if(assetApiAccessFlag!=null&&assetApiAccessTime!=null&&assetApiAccessFlag&&assetApiAccessTime.after(now)){
+                                                return;
+                                            }
+                                            break;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-
-                });
+                }
             }
         }
+
+
+        //2。资产权限判断
+        if(assetId!=null&&StringUtils.isNotEmpty(assetType)){
+            ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase("ods");
+            if(shardingSphereDatabase!=null) {
+                Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+                if (singleRule.isPresent()) {
+                    Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(username);
+                    if (accessControlUser.isPresent()) {
+                        Map<Long, AccessControlAssetRule> assets = accessControlUser.get().getAssets();
+                        if(assets!=null){
+                            AccessControlAssetRule accessControlAssetRule = assets.get(assetId);
+                            if(accessControlAssetRule!=null){
+                                //有该资产的权限,且没有过期
+                                Date now = new Date();
+                                if(assetType.equals(accessControlAssetRule.getAssetType())&&accessControlAssetRule.getExpirationTime()!=null&&accessControlAssetRule.getExpirationTime().after(now)){
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        String assetTypeCnName = "指标";
+        if("API".equals(assetType)){
+            assetTypeCnName = "API服务";
+        }
+        throw new HasNotAccessRightException(assetTypeCnName,assetName);
     }
 
     private Map<String, Map<String, List<String>>> filterHasNotCatalogPermissionAccessMap(String username, ShardingSphereMetaData metaData, Map<String, Map<String, List<String>>> accessMap) {

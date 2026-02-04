@@ -17,14 +17,18 @@
 
 package org.apache.shardingsphere.infra.hint;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.shardingsphere.infra.util.json.JsonUtils;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -57,7 +61,25 @@ public final class HintValueContext {
     private String riskModule;
 
     private String opeUser;
-    
+
+    private Long assetId;
+
+    private String assetType;
+
+    private String assetName;
+
+    private String themeDomainIdListStr;
+
+    private List<Long> themeDomainIdList;
+
+
+    public void setThemeDomainIdListStr(String themeDomainIdListStr) {
+        this.themeDomainIdListStr = themeDomainIdListStr;
+        if(StringUtils.isNotEmpty(themeDomainIdListStr)){
+            themeDomainIdList = JsonUtils.fromJsonString(themeDomainIdListStr, new TypeReference<List<Long>>() {});
+        }
+    }
+
     /**
      * Find hint data source name.
      *
