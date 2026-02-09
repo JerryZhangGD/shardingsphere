@@ -39,7 +39,7 @@ public final class HasNotAccessRightException extends MetaDataSQLException {
     }
 
     public HasNotAccessRightException(final String databaseName,final String tableName,final List<String> columnList) {
-        super(XOpenSQLState.PRIVILEGE_NOT_GRANTED, 2, "由于管理员为您设置了列权限，你暂时没有【'%s'.'%s'】数据表中【%s】列的权限，请勿使用select * 进行查询，改为明确的查询列，或者再次申请权限并联系管理员进行设置。", databaseName, tableName, columnList.stream().collect(Collectors.joining(",")));
+        super(XOpenSQLState.PRIVILEGE_NOT_GRANTED, 2, "由于管理员为你设置了列权限，你暂时没有【'%s'.'%s'】数据表中【%s】列的权限，请勿使用select * 进行查询，改为明确的查询列，或者再次申请权限并联系管理员进行设置。", databaseName, tableName, columnList.stream().collect(Collectors.joining(",")));
     }
 
     public HasNotAccessRightException(final String assetTypeCnName,final String assetName) {
