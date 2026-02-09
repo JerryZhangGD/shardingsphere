@@ -52,12 +52,14 @@ import org.apache.shardingsphere.sql.parser.statement.mysql.dml.MySQLSelectState
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
  * Authority SQL execution checker.
  */
 public final class AccessControlExecutionChecker implements SQLExecutionChecker {
+    private static final Logger LOGGER = Logger.getLogger(AccessControlExecutionChecker.class.getName());
     
     @Override
     public void check(final ShardingSphereMetaData metaData, final Grantee grantee, final QueryContext queryContext, final ShardingSphereDatabase database) {
@@ -106,6 +108,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             HintValueContext hintValueContext = queryContext.getHintValueContext();
             String assetType = hintValueContext.getAssetType();
             Long assetId = hintValueContext.getAssetId();
+            LOGGER.info("获取到的assetId["+assetId+"],assetType["+assetType+"]");
             String assetName = hintValueContext.getAssetName();
             //todo 指标和api进行权限判断,且不用脱敏，后面要指标和api脱敏的话，另行开发，不在上面的getAccessMapFromQueryContext中进行脱敏
             if(StringUtils.isNotEmpty(assetType)&&assetId!=null&&("INDICATOR".equals(assetType)||"API".equals(assetType))){
