@@ -303,8 +303,10 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
                 SelectStatementContext selectStatementContext = (SelectStatementContext) sqlStatementContext;
                 ProjectionsContext projectionsContext = selectStatementContext.getProjectionsContext();
                 Projection projection = projectionsContext.findProjection(columnIndex);
-                projection.setProjectionType(queryHeader.getColumnType());
-                projection.setProjectionLength(queryHeader.getColumnLength());
+                if(projection!=null){
+                    projection.setProjectionType(queryHeader.getColumnType());
+                    projection.setProjectionLength(queryHeader.getColumnLength());
+                }
             }
         }
         return result;
@@ -380,7 +382,7 @@ public final class DatabaseConnector implements DatabaseBackendHandler {
             if(sqlStatementContext instanceof SelectStatementContext){
                 SelectStatementContext selectStatementContext = (SelectStatementContext)sqlStatementContext;
                 Projection projection = selectStatementContext.getProjectionsContext().findProjection(columnIndex);
-                if(projection.getDesensitizeFlag()!=null&&projection.getDesensitizeFlag()){
+                if(projection!=null&&projection.getDesensitizeFlag()!=null&&projection.getDesensitizeFlag()){
                     int projectionType = projection.getProjectionType();
                     int projectionLength = projection.getProjectionLength();
                     switch (projectionType){
