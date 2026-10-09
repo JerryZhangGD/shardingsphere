@@ -75,6 +75,9 @@ public final class SQLHintUtils {
         if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.THEME_DOMAIN_ID_LIST_STR)) {
             result.setThemeDomainIdListStr(getHintValue(hintKeyValues, SQLHintPropertiesKey.THEME_DOMAIN_ID_LIST_STR));
         }
+        if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.THEME_ANALYSIS_ID_LIST_STR)) {
+            result.setThemeAnalysisIdListStr(getHintValue(hintKeyValues, SQLHintPropertiesKey.THEME_ANALYSIS_ID_LIST_STR));
+        }
 
 
         if (containsHintKey(hintKeyValues, SQLHintPropertiesKey.RISK_TYPE_KEY)) {

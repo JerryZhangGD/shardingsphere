@@ -113,15 +113,22 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             //todo 指标和api进行权限判断,且不用脱敏，后面要指标和api脱敏的话，另行开发，不在上面的getAccessMapFromQueryContext中进行脱敏
             if(StringUtils.isNotEmpty(assetType)&&assetId!=null&&("INDICATOR".equals(assetType)||"API".equals(assetType))){
                 List<Long> themeDomainIdList = hintValueContext.getThemeDomainIdList();
-                filterIndicatorAssetOrApiAssetPermission(username,metaData,queryContext,assetId,assetType,themeDomainIdList,assetName);
+                List<Long> themeAnalysisIdList = hintValueContext.getThemeAnalysisIdList();
+                filterIndicatorAssetOrApiAssetPermission(username,metaData,queryContext,assetId,assetType,themeDomainIdList,assetName,themeAnalysisIdList);
             } else {//todo 对数据表进行权限判断和脱敏设置
                 Map<String, Map<String, List<String>>> accessMap = getAccessMapFromQueryContext(username,metaData,queryContext,userLevel,sensitiveLevelMap);
 
+                //将没有目录权限的过滤出来
                 Map<String, Map<String, List<String>>> hasNotCatalogPermissionAccessMap = filterHasNotCatalogPermissionAccessMap(username,metaData,accessMap);
 
-                if(hasNotCatalogPermissionAccessMap!=null&&!hasNotCatalogPermissionAccessMap.isEmpty()){
+                //todo 将没有来源系统权限的过滤出来
+                Map<String, Map<String, List<String>>> hasNotSrcSystemPermissionAccessMap = filterHasNotSrcSystemPermissionAccessMap(username,metaData,hasNotCatalogPermissionAccessMap);
+
+
+                //再判断有没有单独表资产的权限
+                if(hasNotSrcSystemPermissionAccessMap!=null&&!hasNotSrcSystemPermissionAccessMap.isEmpty()){
                     List<ShardingSphereDatabase> shardingSphereDatabaseList = new ArrayList<>();
-                    hasNotCatalogPermissionAccessMap.entrySet().forEach(entry ->{
+                    hasNotSrcSystemPermissionAccessMap.entrySet().forEach(entry ->{
                         String databaseName = entry.getKey();
                         ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase(databaseName);
                         if(shardingSphereDatabase==null){
@@ -192,7 +199,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         }
     }
 
-    private void filterIndicatorAssetOrApiAssetPermission(String username, ShardingSphereMetaData metaData, QueryContext queryContext, Long assetId, String assetType, List<Long> themeDomainIdList, String assetName) {
+    private void filterIndicatorAssetOrApiAssetPermission(String username, ShardingSphereMetaData metaData, QueryContext queryContext, Long assetId, String assetType, List<Long> themeDomainIdList, String assetName, List<Long> themeAnalysisIdList) {
         //1. 主题域权限判断
         if(themeDomainIdList!=null&&themeDomainIdList.size()>0){
             ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase("ods");
@@ -206,6 +213,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                             for(Long themeDomainId:themeDomainIdList){
                                 AccessControlCatalogRule accessControlCatalogRule = catalogs.get(themeDomainId);
                                 if(accessControlCatalogRule!=null){
+                                    //themeAnalysisIdList,不应该是分析主题的id,而是分析主题所属主题域的id
                                     switch (assetType){
                                         case "INDICATOR":{
                                             Date now = new Date();
@@ -237,7 +245,41 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         }
 
 
-        //2。资产权限判断
+        //2. 指标的所属分析主题所属目录(主题域)权限判断,指标的靠注释传，表的靠fullName去找分析主题，找目录
+        if(themeAnalysisIdList!=null&&themeAnalysisIdList.size()>0){
+            ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase("ods");
+            if(shardingSphereDatabase!=null){
+                Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+                if(singleRule.isPresent()){
+                    Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(username);
+                    if(accessControlUser.isPresent()){
+                        Map<Long, AccessControlCatalogRule> catalogs = accessControlUser.get().getCatalogs();
+                        if(catalogs!=null){
+                            for(Long themeDomainId:themeAnalysisIdList){
+                                AccessControlCatalogRule accessControlCatalogRule = catalogs.get(themeDomainId);
+                                if(accessControlCatalogRule!=null){
+                                    //themeAnalysisIdList,不应该是分析主题的id,而是分析主题所属主题域的id
+                                    switch (assetType){
+                                        case "INDICATOR":{
+                                            Date now = new Date();
+                                            Boolean analysisThemeAccessFlag = accessControlCatalogRule.getAnalysisThemeAccessFlag();
+                                            Date analysisThemeAccessTime = accessControlCatalogRule.getAnalysisThemeAccessTime();
+                                            //有该主题域指标资产权限，且没有过期
+                                            if(analysisThemeAccessFlag!=null&&analysisThemeAccessTime!=null&&analysisThemeAccessFlag&&analysisThemeAccessTime.after(now)){
+                                                return;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        //3。资产权限判断
         if(assetId!=null&&StringUtils.isNotEmpty(assetType)){
             ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase("ods");
             if(shardingSphereDatabase!=null) {
@@ -316,11 +358,18 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                 List<String> columnNameList = entry1.getValue();
                 String tableFullName = databaseName+"."+tableName;
                 if(!tableFullNameMapThemeDomainIdMapAssetTypeList.containsKey(tableFullName)){
-                    stringListMap.put(tableName,columnNameList);
+                    //todo 补充判断，没有表对应的分析主题的对应的目录的权限,参考checkCatalogPermission
+                    if(!checkTableAnalysisIdAndCatalogPermission(props,tableFullName,catalogs,themeDomainAssetRelationList)){
+                        stringListMap.put(tableName,columnNameList);
+                    }
+
                 } else {
                     Map<Long, List<AssetType>> themeDomainIdMapAssetTypeList = tableFullNameMapThemeDomainIdMapAssetTypeList.get(tableFullName);
                     if(!checkCatalogPermission(themeDomainIdMapAssetTypeList,catalogs)){
-                        stringListMap.put(tableName,columnNameList);
+                        //todo 补充判断，没有表对应的分析主题的对应的目录的权限
+                        if(!checkTableAnalysisIdAndCatalogPermission(props,tableFullName,catalogs,themeDomainAssetRelationList)){
+                            stringListMap.put(tableName,columnNameList);
+                        }
                     }
                 }
             }
@@ -333,6 +382,69 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
 
 
         return hasNotCatalogPermissionAccessMap;
+    }
+
+    private boolean checkTableAnalysisIdAndCatalogPermission(ConfigurationProperties props, String tableFullName, Map<Long, AccessControlCatalogRule> catalogs, List<ThemeDomainAssetRelation> themeDomainAssetRelationList) {
+        boolean result = false;
+
+        String themeAnalysisAssetRelationListStr = (String) props.getProps().get("themeAnalysisAssetRelationList");
+        if(StringUtils.isNotEmpty(themeAnalysisAssetRelationListStr)){
+            List<ThemeAnalysisAssetRelation> themeAnalysisAssetRelationList = JsonUtils.fromJsonString(themeAnalysisAssetRelationListStr, new TypeReference<List<ThemeAnalysisAssetRelation>>() {});
+            if(themeAnalysisAssetRelationList!=null&&themeAnalysisAssetRelationList.size()>0){
+
+
+
+                List<Long> tableBelongThemeAnalysisIdList = new ArrayList<>();
+                for(ThemeAnalysisAssetRelation themeAnalysisAssetRelation:themeAnalysisAssetRelationList){
+                    Long themeAnalysisId = themeAnalysisAssetRelation.getThemeAnalysisId();
+                    List<ThemeAnalysisToAssetRelation> themeAnalysisToAssetRelationList = themeAnalysisAssetRelation.getThemeAnalysisToAssetRelationList();
+                    if(themeAnalysisToAssetRelationList!=null&&themeAnalysisToAssetRelationList.size()>0){
+                        for(ThemeAnalysisToAssetRelation themeAnalysisToAssetRelation:themeAnalysisToAssetRelationList){
+                            if(themeAnalysisToAssetRelation.getFullTableName()!=null&&themeAnalysisToAssetRelation.getFullTableName().equals(tableFullName)){
+                                tableBelongThemeAnalysisIdList.add(themeAnalysisId);
+                            }
+                        }
+                    }
+                }
+
+
+
+                if(tableBelongThemeAnalysisIdList.size()>0){
+                    List<Long> tableBelongThemeAnaylysisBelongThemeDomainIdList = new ArrayList<>();
+                    for(ThemeDomainAssetRelation themeDomainAssetRelation:themeDomainAssetRelationList){
+                        Long themeDomainId = themeDomainAssetRelation.getThemeDomainId();
+                        List<AssetToTableRelation> assetToTableRelationList = themeDomainAssetRelation.getAssetToTableRelationList();
+                        if(assetToTableRelationList!=null&&assetToTableRelationList.size()>0){
+                            for(AssetToTableRelation assetToTableRelation:assetToTableRelationList){
+                                Long assetId = assetToTableRelation.getAssetId();
+                                AssetType assetType = assetToTableRelation.getAssetType();
+                                if(AssetType.ANALYSIS_THEME.equals(assetType)){
+                                    if(tableBelongThemeAnalysisIdList.contains(assetId)){
+                                        tableBelongThemeAnaylysisBelongThemeDomainIdList.add(themeDomainId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if(tableBelongThemeAnaylysisBelongThemeDomainIdList.size()>0){
+                        for(Long themeDomainId:tableBelongThemeAnaylysisBelongThemeDomainIdList){
+                            AccessControlCatalogRule accessControlCatalogRule = catalogs.get(themeDomainId);
+                            if(accessControlCatalogRule!=null){
+                                Date now = new Date();
+                                Boolean analysisThemeAccessFlag = accessControlCatalogRule.getAnalysisThemeAccessFlag();
+                                Date analysisThemeAccessTime = accessControlCatalogRule.getAnalysisThemeAccessTime();
+                                //有该主题域指标资产权限，且没有过期
+                                if(analysisThemeAccessFlag!=null&&analysisThemeAccessTime!=null&&analysisThemeAccessFlag&&analysisThemeAccessTime.after(now)){
+                                    result = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     private boolean checkCatalogPermission(Map<Long, List<AssetType>> themeDomainIdMapAssetTypeList, Map<Long, AccessControlCatalogRule> catalogs) {

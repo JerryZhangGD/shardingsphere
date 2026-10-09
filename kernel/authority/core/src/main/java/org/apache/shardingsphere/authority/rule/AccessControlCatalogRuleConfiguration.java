@@ -9,6 +9,7 @@ public class AccessControlCatalogRuleConfiguration {
     private Boolean assetIndicatorAccessFlag;
     private Boolean assetReportTableAccessFlag;
     private Boolean desensitizeWhiteListFlag;
+    private Boolean analysisThemeAccessFlag;
 
     private Date expirationTime;
 
@@ -17,18 +18,38 @@ public class AccessControlCatalogRuleConfiguration {
     private Date assetIndicatorAccessTime;
     private Date assetReportTableAccessTime;
 
-    public AccessControlCatalogRuleConfiguration(Long themeDomainId, Boolean assetTableAccessFlag, Boolean assetApiAccessFlag, Boolean assetIndicatorAccessFlag, Boolean assetReportTableAccessFlag, Boolean desensitizeWhiteListFlag, Date expirationTime, Date assetTableAccessTime, Date assetApiAccessTime, Date assetIndicatorAccessTime, Date assetReportTableAccessTime) {
+    private Date analysisThemeAccessTime;
+
+    public AccessControlCatalogRuleConfiguration(Long themeDomainId, Boolean assetTableAccessFlag, Boolean assetApiAccessFlag, Boolean assetIndicatorAccessFlag, Boolean assetReportTableAccessFlag, Boolean desensitizeWhiteListFlag, Boolean analysisThemeAccessFlag, Date expirationTime, Date assetTableAccessTime, Date assetApiAccessTime, Date assetIndicatorAccessTime, Date assetReportTableAccessTime, Date analysisThemeAccessTime) {
         this.themeDomainId = themeDomainId;
         this.assetTableAccessFlag = assetTableAccessFlag;
         this.assetApiAccessFlag = assetApiAccessFlag;
         this.assetIndicatorAccessFlag = assetIndicatorAccessFlag;
         this.assetReportTableAccessFlag = assetReportTableAccessFlag;
         this.desensitizeWhiteListFlag = desensitizeWhiteListFlag;
+        this.analysisThemeAccessFlag = analysisThemeAccessFlag;
         this.expirationTime = expirationTime;
         this.assetTableAccessTime = assetTableAccessTime;
         this.assetApiAccessTime = assetApiAccessTime;
         this.assetIndicatorAccessTime = assetIndicatorAccessTime;
         this.assetReportTableAccessTime = assetReportTableAccessTime;
+        this.analysisThemeAccessTime = analysisThemeAccessTime;
+    }
+
+    public Boolean getAnalysisThemeAccessFlag() {
+        return analysisThemeAccessFlag;
+    }
+
+    public void setAnalysisThemeAccessFlag(Boolean analysisThemeAccessFlag) {
+        this.analysisThemeAccessFlag = analysisThemeAccessFlag;
+    }
+
+    public Date getAnalysisThemeAccessTime() {
+        return analysisThemeAccessTime;
+    }
+
+    public void setAnalysisThemeAccessTime(Date analysisThemeAccessTime) {
+        this.analysisThemeAccessTime = analysisThemeAccessTime;
     }
 
     public Long getThemeDomainId() {

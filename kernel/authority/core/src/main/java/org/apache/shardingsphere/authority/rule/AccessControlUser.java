@@ -33,14 +33,17 @@ public final class AccessControlUser {
     private final Map<Long,AccessControlCatalogRule> catalogs;
     private final Map<String, AccessControlTable> tables;
     private final Map<Long,AccessControlAssetRule> assets;
+    private final Map<Long,AccessControlSrcSystemRule> srcSystems;
 
     public AccessControlUser(final AccessControlUserRuleConfiguration config) {
         this.allFlag = config.getAllFlag();
         this.catalogs = config.getCatalogs().stream().collect(Collectors.toMap(AccessControlCatalogRuleConfiguration::getThemeDomainId,
-                each->new AccessControlCatalogRule(each.getThemeDomainId(),each.getAssetTableAccessFlag(),each.getAssetApiAccessFlag(),each.getAssetIndicatorAccessFlag(),each.getAssetReportTableAccessFlag(),each.getDesensitizeWhiteListFlag(),each.getExpirationTime(),each.getAssetTableAccessTime(),each.getAssetApiAccessTime(),each.getAssetIndicatorAccessTime(),each.getAssetReportTableAccessTime()),(v1,v2)->v1,CaseInsensitiveMap::new));
+                each->new AccessControlCatalogRule(each.getThemeDomainId(),each.getAssetTableAccessFlag(),each.getAssetApiAccessFlag(),each.getAssetIndicatorAccessFlag(),each.getAssetReportTableAccessFlag(),each.getDesensitizeWhiteListFlag(),each.getAnalysisThemeAccessFlag(),each.getExpirationTime(),each.getAssetTableAccessTime(),each.getAssetApiAccessTime(),each.getAssetIndicatorAccessTime(),each.getAssetReportTableAccessTime(),each.getAnalysisThemeAccessTime()),(v1,v2)->v1,CaseInsensitiveMap::new));
         this.tables = config.getTables().stream().collect(Collectors.toMap(AccessControlTableRuleConfiguration::getTableName,
                 each -> new AccessControlTable(each.getAllFlag(),each.getTableName(),each.getDesensitizeWhiteListFlag(),each.getColumns(),each.getExpirationTime(),each.getFilterConditionSql()), (oldValue, currentValue) -> oldValue, CaseInsensitiveMap::new));
         this.assets = config.getAssets().stream().collect(Collectors.toMap(AccessControlAssetRuleConfiguration::getAssetId,
                 each -> new AccessControlAssetRule(each.getAssetId(),each.getAssetType(),each.getThemeDomainIdList(),each.getExpirationTime()),(v1,v2)->v2,CaseInsensitiveMap::new));
+        this.srcSystems = config.getSrcSystems().stream().collect(Collectors.toMap(AccessControlSrcSystemRuleConfiguration::getSrcSystemDictId,
+                each -> new AccessControlSrcSystemRule(each.getSrcSystemDictId(), each.getAssetTableAccessFlag(),each.getAssetApiAccessFlag(),each.getAssetIndicatorAccessFlag(),each.getAssetReportTableAccessFlag(),each.getAnalysisThemeAccessFlag(),each.getExpirationTime(),each.getAssetTableAccessTime(),each.getAssetApiAccessTime(),each.getAssetIndicatorAccessTime(),each.getAssetReportTableAccessTime(),each.getAnalysisThemeAccessTime())));
     }
 }

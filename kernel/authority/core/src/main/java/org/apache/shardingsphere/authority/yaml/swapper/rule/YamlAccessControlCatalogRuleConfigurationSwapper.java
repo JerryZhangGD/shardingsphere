@@ -36,17 +36,19 @@ public final class YamlAccessControlCatalogRuleConfigurationSwapper implements Y
         result.setAssetIndicatorAccessFlag(data.getAssetIndicatorAccessFlag());
         result.setAssetReportTableAccessFlag(data.getAssetReportTableAccessFlag());
         result.setDesensitizeWhiteListFlag(data.getDesensitizeWhiteListFlag());
+        result.setAnalysisThemeAccessFlag(data.getAnalysisThemeAccessFlag());
         result.setExpirationTime(data.getExpirationTime());
 
         result.setAssetTableAccessTime(data.getAssetTableAccessTime());
         result.setAssetApiAccessTime(data.getAssetApiAccessTime());
         result.setAssetIndicatorAccessTime(data.getAssetIndicatorAccessTime());
         result.setAssetReportTableAccessTime(data.getAssetReportTableAccessTime());
+        result.setAnalysisThemeAccessTime(data.getAnalysisThemeAccessTime());
         return result;
     }
     
     @Override
     public AccessControlCatalogRuleConfiguration swapToObject(final YamlAccessControlCatalogRuleConfiguration yamlConfig) {
-        return new AccessControlCatalogRuleConfiguration(yamlConfig.getThemeDomainId(),yamlConfig.getAssetTableAccessFlag(),yamlConfig.getAssetApiAccessFlag(),yamlConfig.getAssetIndicatorAccessFlag(),yamlConfig.getAssetReportTableAccessFlag(),yamlConfig.getDesensitizeWhiteListFlag(),yamlConfig.getExpirationTime(),yamlConfig.getAssetTableAccessTime(),yamlConfig.getAssetApiAccessTime(),yamlConfig.getAssetIndicatorAccessTime(),yamlConfig.getAssetReportTableAccessTime());
+        return new AccessControlCatalogRuleConfiguration(yamlConfig.getThemeDomainId(),yamlConfig.getAssetTableAccessFlag(),yamlConfig.getAssetApiAccessFlag(),yamlConfig.getAssetIndicatorAccessFlag(),yamlConfig.getAssetReportTableAccessFlag(),yamlConfig.getDesensitizeWhiteListFlag(),yamlConfig.getAnalysisThemeAccessFlag(),yamlConfig.getExpirationTime(),yamlConfig.getAssetTableAccessTime(),yamlConfig.getAssetApiAccessTime(),yamlConfig.getAssetIndicatorAccessTime(),yamlConfig.getAssetReportTableAccessTime(),yamlConfig.getAnalysisThemeAccessTime());
     }
 }

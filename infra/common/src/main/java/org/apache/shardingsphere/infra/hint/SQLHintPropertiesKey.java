@@ -40,6 +40,8 @@ public enum SQLHintPropertiesKey implements TypedPropertyKey {
 
     THEME_DOMAIN_ID_LIST_STR("THEME_DOMAIN_ID_LIST_STR","themeDomainIdListStr","",String.class),
 
+    THEME_ANALYSIS_ID_LIST_STR("THEME_ANALYSIS_ID_LIST_STR","themeAnalysisIdListStr","",String.class),
+
     /**
      * Hint data source name.
      */

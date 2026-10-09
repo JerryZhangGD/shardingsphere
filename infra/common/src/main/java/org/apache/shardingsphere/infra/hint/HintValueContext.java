@@ -69,6 +69,24 @@ public final class HintValueContext {
 
     private List<Long> themeDomainIdList;
 
+    private String themeAnalysisIdListStr;
+
+    private List<Long> themeAnalysisIdList;
+
+
+    public void setThemeAnalysisIdListStr(String themeAnalysisIdListStr) {
+        this.themeAnalysisIdListStr = themeAnalysisIdListStr;
+        if(StringUtils.isNotEmpty(themeAnalysisIdListStr)){
+            List<Long> themeAnalysisIdList1 = new ArrayList<>();
+            String[] splits = themeAnalysisIdListStr.split("-");
+            for(String split:splits){
+                themeAnalysisIdList1.add(Long.valueOf(split));
+            }
+            if(themeAnalysisIdList1.size()>0){
+                themeAnalysisIdList = themeAnalysisIdList1;
+            }
+        }
+    }
 
     public void setThemeDomainIdListStr(String themeDomainIdListStr) {
         this.themeDomainIdListStr = themeDomainIdListStr;

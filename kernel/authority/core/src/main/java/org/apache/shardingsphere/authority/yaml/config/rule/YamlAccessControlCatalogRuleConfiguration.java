@@ -17,10 +17,12 @@ public class YamlAccessControlCatalogRuleConfiguration implements YamlConfigurat
     private Boolean assetIndicatorAccessFlag;
     private Boolean assetReportTableAccessFlag;
     private Boolean desensitizeWhiteListFlag;
+    private Boolean analysisThemeAccessFlag;
     private Date expirationTime;
 
     private Date assetTableAccessTime;
     private Date assetApiAccessTime;
     private Date assetIndicatorAccessTime;
     private Date assetReportTableAccessTime;
+    private Date analysisThemeAccessTime;
 }

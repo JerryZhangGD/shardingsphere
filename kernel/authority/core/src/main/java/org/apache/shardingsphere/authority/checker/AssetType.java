@@ -1,5 +1,5 @@
 package org.apache.shardingsphere.authority.checker;
 
 public enum AssetType {
-    TABLE,API,INDICATOR,REPORT_TABLE;
+    TABLE,API,INDICATOR,REPORT_TABLE,ANALYSIS_THEME;
 }
