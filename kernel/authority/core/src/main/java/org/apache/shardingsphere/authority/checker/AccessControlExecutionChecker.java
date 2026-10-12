@@ -199,6 +199,72 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         }
     }
 
+    private Map<String, Map<String, List<String>>> filterHasNotSrcSystemPermissionAccessMap(String username, ShardingSphereMetaData metaData, Map<String, Map<String, List<String>>> accessMap) {
+        Map<String, Map<String, List<String>>> hasNotCatalogPermissionAccessMap = new HashMap<>();
+        if(accessMap==null||accessMap.isEmpty()){
+            return null;
+        }
+        ConfigurationProperties props = metaData.getProps();
+        String srcSystemDictAssetRelationListStr = (String) props.getProps().get("srcSystemDictAssetRelationList");
+        if(StringUtils.isEmpty(srcSystemDictAssetRelationListStr)){
+            return accessMap;
+        }
+
+        List<SrcSystemDictAssetRelation> srcSystemDictAssetRelationList = JsonUtils.fromJsonString(srcSystemDictAssetRelationListStr, new TypeReference<List<SrcSystemDictAssetRelation>>() {});
+        if(srcSystemDictAssetRelationList==null||srcSystemDictAssetRelationList.size()==0){
+            return accessMap;
+        }
+        ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase("ods");
+        if(shardingSphereDatabase==null){
+            return accessMap;
+        }
+        Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+        if(!singleRule.isPresent()){
+            return accessMap;
+        }
+
+        Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(username);
+        if(!accessControlUser.isPresent()){
+            return accessMap;
+        }
+
+        Map<Long, AccessControlSrcSystemRule> srcSystems = accessControlUser.get().getSrcSystems();
+        if(srcSystems==null||srcSystems.isEmpty()){
+            return accessMap;
+        }
+        Map<String,Map<Long,List<AssetType>>> tableFullNameMapSrcSystemDictIdMapAssetTypeList=getTableFullNameMapSrcSystemDictRel(srcSystemDictAssetRelationList);
+        if(tableFullNameMapSrcSystemDictIdMapAssetTypeList==null||tableFullNameMapSrcSystemDictIdMapAssetTypeList.isEmpty()){
+            return accessMap;
+        }
+
+        accessMap.entrySet().forEach(entry ->{
+            String databaseName = entry.getKey();
+            Map<String, List<String>> tableNameMapColumnList = entry.getValue();
+            Map<String, List<String>> stringListMap = hasNotCatalogPermissionAccessMap.get(databaseName);
+            if(stringListMap==null){
+                stringListMap = new HashMap<>();
+            }
+            for(Map.Entry<String,List<String>> entry1:tableNameMapColumnList.entrySet()){
+                String tableName = entry1.getKey();
+                List<String> columnNameList = entry1.getValue();
+                String tableFullName = databaseName+"."+tableName;
+                if(!tableFullNameMapSrcSystemDictIdMapAssetTypeList.containsKey(tableFullName)){
+                    stringListMap.put(tableName,columnNameList);
+                } else {
+                    Map<Long, List<AssetType>> srcSystemDictIdMapAssetTypeList = tableFullNameMapSrcSystemDictIdMapAssetTypeList.get(tableFullName);
+                    if(!checkSrcSystemPermission(srcSystemDictIdMapAssetTypeList,srcSystems)){
+                        stringListMap.put(tableName,columnNameList);
+                    }
+                }
+            }
+            if(!stringListMap.isEmpty()){
+                hasNotCatalogPermissionAccessMap.put(databaseName,stringListMap);
+            }
+
+        });
+        return hasNotCatalogPermissionAccessMap;
+    }
+
     private void filterIndicatorAssetOrApiAssetPermission(String username, ShardingSphereMetaData metaData, QueryContext queryContext, Long assetId, String assetType, List<Long> themeDomainIdList, String assetName, List<Long> themeAnalysisIdList) {
         //1. 主题域权限判断
         if(themeDomainIdList!=null&&themeDomainIdList.size()>0){
@@ -474,6 +540,46 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                     result = true;
                     break;
                 }
+                if(assetTypeList.contains(AssetType.ANALYSIS_THEME)&&rule.getAnalysisThemeAccessFlag()!=null&&rule.getAnalysisThemeAccessFlag()&&(rule.getAnalysisThemeAccessTime()==null||rule.getAnalysisThemeAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
+            }
+        }
+        return result;
+    }
+
+    private boolean checkSrcSystemPermission(Map<Long, List<AssetType>> srcSystemDictIdMapAssetTypeList, Map<Long, AccessControlSrcSystemRule> srcSystems) {
+        boolean result = false;
+        if(srcSystemDictIdMapAssetTypeList==null||srcSystemDictIdMapAssetTypeList.isEmpty()||srcSystems==null||srcSystems.isEmpty()){
+            return result;
+        }
+        for(Map.Entry<Long, AccessControlSrcSystemRule> entry:srcSystems.entrySet()){
+            Long srcSystemDictId = entry.getKey();
+            AccessControlSrcSystemRule rule = entry.getValue();
+            Date now = new Date();
+            if(srcSystemDictIdMapAssetTypeList.containsKey(srcSystemDictId)){
+                List<AssetType> assetTypeList = srcSystemDictIdMapAssetTypeList.get(srcSystemDictId);
+                if(assetTypeList.contains(AssetType.TABLE)&&rule.getAssetTableAccessFlag()!=null&&rule.getAssetTableAccessFlag()&&(rule.getAssetTableAccessTime()==null||rule.getAssetTableAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
+                if(assetTypeList.contains(AssetType.API)&&rule.getAssetApiAccessFlag()!=null&&rule.getAssetApiAccessFlag()&&(rule.getAssetApiAccessTime()==null||rule.getAssetApiAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
+                if(assetTypeList.contains(AssetType.INDICATOR)&&rule.getAssetIndicatorAccessFlag()!=null&&rule.getAssetIndicatorAccessFlag()&&(rule.getAssetIndicatorAccessTime()==null||rule.getAssetIndicatorAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
+                if(assetTypeList.contains(AssetType.REPORT_TABLE)&&rule.getAssetReportTableAccessFlag()!=null&&rule.getAssetReportTableAccessFlag()&&(rule.getAssetReportTableAccessTime()==null||rule.getAssetReportTableAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
+                if(assetTypeList.contains(AssetType.ANALYSIS_THEME)&&rule.getAnalysisThemeAccessFlag()!=null&&rule.getAnalysisThemeAccessFlag()&&(rule.getAnalysisThemeAccessTime()==null||rule.getAnalysisThemeAccessTime().after(now))){
+                    result = true;
+                    break;
+                }
             }
         }
         return result;
@@ -517,6 +623,44 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         }
 
         return tableFullNameMapThemeDomainIdMapAssetTypeList;
+    }
+
+    private Map<String, Map<Long, List<AssetType>>> getTableFullNameMapSrcSystemDictRel(List<SrcSystemDictAssetRelation> srcSystemDictAssetRelationList) {
+        Map<String,Map<Long,List<AssetType>>> tableFullNameMapSrcSystemDictIdMapAssetTypeList = new HashMap<>();
+        if(srcSystemDictAssetRelationList==null||srcSystemDictAssetRelationList.isEmpty()){
+            return null;
+        }
+        for(SrcSystemDictAssetRelation srcSystemDictAssetRelation:srcSystemDictAssetRelationList){
+            Long srcSystemDictId = srcSystemDictAssetRelation.getSrcSystemDictId();
+            List<SrcSystemDictToAssetRelation> srcSystemDictToAssetRelationList = srcSystemDictAssetRelation.getSrcSystemDictToAssetRelationList();
+            if(srcSystemDictToAssetRelationList!=null&&!srcSystemDictToAssetRelationList.isEmpty()){
+                for(SrcSystemDictToAssetRelation srcSystemDictToAssetRelation:srcSystemDictToAssetRelationList){
+                    String fullTableName = srcSystemDictToAssetRelation.getFullTableName();
+                    if(StringUtils.isNotEmpty(fullTableName)){
+                        Map<Long, List<AssetType>> srcSystemDictIdMapAssetTypeList = tableFullNameMapSrcSystemDictIdMapAssetTypeList.get(fullTableName);
+                        if(srcSystemDictIdMapAssetTypeList==null){
+                            srcSystemDictIdMapAssetTypeList = new HashMap<>();
+                        }
+                        List<AssetType> assetTypeList = srcSystemDictIdMapAssetTypeList.get(srcSystemDictId);
+                        if(assetTypeList==null){
+                            assetTypeList = new ArrayList<>();
+                        }
+                        if(!assetTypeList.contains(srcSystemDictToAssetRelation.getAssetType())){
+                            assetTypeList.add(srcSystemDictToAssetRelation.getAssetType());
+                        }
+                        if(!assetTypeList.isEmpty()){
+                            srcSystemDictIdMapAssetTypeList.put(srcSystemDictId,assetTypeList);
+                        }
+
+                        if(!srcSystemDictIdMapAssetTypeList.isEmpty()){
+                            tableFullNameMapSrcSystemDictIdMapAssetTypeList.put(fullTableName,srcSystemDictIdMapAssetTypeList);
+                        }
+                    }
+                }
+            }
+        }
+
+        return tableFullNameMapSrcSystemDictIdMapAssetTypeList;
     }
 
     private static Map<String, Map<String, List<String>>> getAccessMapFromQueryContext(String username, ShardingSphereMetaData metaData, QueryContext queryContext, Integer userLevel, Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap) {
