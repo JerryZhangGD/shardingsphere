@@ -20,6 +20,8 @@ package org.apache.shardingsphere.authority.rule;
 import com.cedarsoftware.util.CaseInsensitiveMap;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -34,6 +36,7 @@ public final class AccessControlUser {
     private final Map<String, AccessControlTable> tables;
     private final Map<Long,AccessControlAssetRule> assets;
     private final Map<Long,AccessControlSrcSystemRule> srcSystems;
+    private final List<String> tableFullNameList;
 
     public AccessControlUser(final AccessControlUserRuleConfiguration config) {
         this.allFlag = config.getAllFlag();
@@ -45,5 +48,6 @@ public final class AccessControlUser {
                 each -> new AccessControlAssetRule(each.getAssetId(),each.getAssetType(),each.getThemeDomainIdList(),each.getExpirationTime()),(v1,v2)->v2,CaseInsensitiveMap::new));
         this.srcSystems = config.getSrcSystems().stream().collect(Collectors.toMap(AccessControlSrcSystemRuleConfiguration::getSrcSystemDictId,
                 each -> new AccessControlSrcSystemRule(each.getSrcSystemDictId(), each.getAssetTableAccessFlag(),each.getAssetApiAccessFlag(),each.getAssetIndicatorAccessFlag(),each.getAssetReportTableAccessFlag(),each.getAnalysisThemeAccessFlag(),each.getExpirationTime(),each.getAssetTableAccessTime(),each.getAssetApiAccessTime(),each.getAssetIndicatorAccessTime(),each.getAssetReportTableAccessTime(),each.getAnalysisThemeAccessTime())));
+        this.tableFullNameList = config.getTableFullNameList();
     }
 }

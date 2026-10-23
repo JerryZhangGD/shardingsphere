@@ -48,6 +48,7 @@ public final class YamlAccessControlUserRuleConfigurationSwapper implements Yaml
         Map<String, YamlAccessControlTableRuleConfiguration> tables = result.getTables();
         result.setName(data.getName());
         result.setAllFlag(data.getAllFlag());
+        result.setTableFullNameList(data.getTableFullNameList());
         if(tables==null){
             tables = new HashMap<>();
         }
@@ -127,6 +128,6 @@ public final class YamlAccessControlUserRuleConfigurationSwapper implements Yaml
         }
 
 
-        return new AccessControlUserRuleConfiguration(yamlConfig.getAllFlag(),yamlConfig.getName(),catalogs,tables,assets,srcSystems);
+        return new AccessControlUserRuleConfiguration(yamlConfig.getAllFlag(),yamlConfig.getName(),catalogs,tables,assets,srcSystems,yamlConfig.getTableFullNameList());
     }
 }

@@ -6,9 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlSrcSystemRuleConfiguration;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 @RequiredArgsConstructor
 @AllArgsConstructor
@@ -21,4 +19,5 @@ public class AccessControlUserRuleConfiguration {
     private final Collection<AccessControlTableRuleConfiguration> tables;
     private final Collection<AccessControlAssetRuleConfiguration> assets;
     private final Collection<AccessControlSrcSystemRuleConfiguration> srcSystems;
+    private final List<String> tableFullNameList;
 }

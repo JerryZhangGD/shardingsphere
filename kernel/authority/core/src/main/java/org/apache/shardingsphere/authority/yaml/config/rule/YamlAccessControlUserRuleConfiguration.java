@@ -5,7 +5,9 @@ import lombok.Setter;
 import org.apache.shardingsphere.authority.yaml.config.rule.YamlAccessControlTableRuleConfiguration;
 import org.apache.shardingsphere.infra.util.yaml.YamlConfiguration;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -22,4 +24,6 @@ public class YamlAccessControlUserRuleConfiguration implements YamlConfiguration
     private Map<Long,YamlAccessControlAssetRuleConfiguration> assets = new LinkedHashMap<>();
 
     private Map<Long, YamlAccessControlSrcSystemRuleConfiguration> srcSystems = new LinkedHashMap<>();
+
+    private List<String> tableFullNameList = new ArrayList<>();
 }
