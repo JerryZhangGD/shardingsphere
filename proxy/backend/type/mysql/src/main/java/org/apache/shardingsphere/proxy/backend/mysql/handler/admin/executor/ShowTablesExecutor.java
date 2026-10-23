@@ -19,6 +19,7 @@ package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shardingsphere.infra.database.core.metadata.database.system.SystemDatabase;
 import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResult;
@@ -37,13 +38,7 @@ import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.sql.parser.statement.core.statement.dal.ShowTablesStatement;
 
 import java.sql.Types;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -67,7 +62,8 @@ public final class ShowTablesExecutor implements DatabaseAdminQueryExecutor {
     public void execute(final ConnectionSession connectionSession) {
         String databaseName = sqlStatement.getFromDatabase().map(schema -> schema.getDatabase().getIdentifier().getValue()).orElseGet(connectionSession::getUsedDatabaseName);
         queryResultMetaData = createQueryResultMetaData(databaseName);
-        mergedResult = new TransparentMergedResult(getQueryResult(databaseName));
+        String username = connectionSession.getConnectionContext().getGrantee().getUsername();
+        mergedResult = new TransparentMergedResult(getQueryResult(databaseName,username));
     }
     
     private QueryResultMetaData createQueryResultMetaData(final String databaseName) {
@@ -80,12 +76,12 @@ public final class ShowTablesExecutor implements DatabaseAdminQueryExecutor {
         return new RawQueryResultMetaData(columnNames);
     }
     
-    private QueryResult getQueryResult(final String databaseName) {
+    private QueryResult getQueryResult(final String databaseName,final String username) {
         SystemDatabase systemDatabase = new SystemDatabase(databaseType);
         if (!systemDatabase.getSystemSchemas().contains(databaseName) && !ProxyContext.getInstance().getContextManager().getDatabase(databaseName).isComplete()) {
             return new RawMemoryQueryResult(queryResultMetaData, Collections.emptyList());
         }
-        List<MemoryQueryResultDataRow> rows = getTables(databaseName).stream().map(this::getRow).collect(Collectors.toList());
+        List<MemoryQueryResultDataRow> rows = getTables(databaseName,username).stream().map(this::getRow).collect(Collectors.toList());
         return new RawMemoryQueryResult(queryResultMetaData, rows);
     }
     
@@ -95,12 +91,39 @@ public final class ShowTablesExecutor implements DatabaseAdminQueryExecutor {
                 : new MemoryQueryResultDataRow(Collections.singletonList(table.getName()));
     }
     
-    private Collection<ShardingSphereTable> getTables(final String databaseName) {
+    private Collection<ShardingSphereTable> getTables(final String databaseName,final String username) {
         Collection<ShardingSphereTable> tables = ProxyContext.getInstance().getContextManager().getDatabase(databaseName).getSchema(databaseName).getTables().values();
-        Collection<ShardingSphereTable> filteredTables = filterByLike(tables);
+        Collection<ShardingSphereTable> filteredTables1 = filterByUserName(tables,databaseName,username);
+        Collection<ShardingSphereTable> filteredTables = filterByLike(filteredTables1);
         return filteredTables.stream().sorted(Comparator.comparing(ShardingSphereTable::getName)).collect(Collectors.toList());
     }
-    
+
+    private Collection<ShardingSphereTable> filterByUserName(Collection<ShardingSphereTable> tables, String databaseName, String username) {
+        if(StringUtils.isEmpty(databaseName)||StringUtils.isEmpty(username)){
+            return tables;
+        } else {
+
+            return tables.stream().filter(shardingSphereTable -> {
+                List<String> tableNameList = new ArrayList<>();
+                boolean flag = false;
+                if(databaseName.equals("ods")){
+                    tableNameList.add("ODS_CRM_MARA_DF2");
+                    tableNameList.add("ODS_CRM_MARA_DF3");
+                    if(tableNameList.contains(shardingSphereTable.getName())){
+                        flag = true;
+                    }
+                } else if(databaseName.equals("dwd")){
+                    tableNameList.add("DWD_IT_MHBBQD_DF");
+                    tableNameList.add("DWD_IT_TABLE_COMMENT_DF");
+                    if(tableNameList.contains(shardingSphereTable.getName())){
+                        flag = true;
+                    }
+                }
+                return flag;
+            }).collect(Collectors.toList());
+        }
+    }
+
     private Collection<ShardingSphereTable> filterByLike(final Collection<ShardingSphereTable> tables) {
         Optional<Pattern> likePattern = getLikePattern();
         return likePattern.isPresent() ? tables.stream().filter(each -> likePattern.get().matcher(each.getName()).matches()).collect(Collectors.toList()) : tables;
