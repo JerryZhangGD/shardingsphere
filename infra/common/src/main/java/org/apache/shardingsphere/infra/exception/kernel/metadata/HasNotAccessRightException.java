@@ -30,6 +30,15 @@ public final class HasNotAccessRightException extends MetaDataSQLException {
 
     private static final long serialVersionUID = -2507596759730534895L;
 
+
+    public HasNotAccessRightException(final String realUserName,final String dbName,final String tableName ) {
+        super(XOpenSQLState.PRIVILEGE_NOT_GRANTED, 2, "doris直连账号[%s]暂时没有[%s.%s]的权限，请到doris直连账号管理页面进行追加授权", realUserName,dbName,tableName);
+    }
+
+    public HasNotAccessRightException(final String realUserName,final String dbName,final String tableName ,final String abc) {
+        super(XOpenSQLState.PRIVILEGE_NOT_GRANTED, 2, "doris直连账号[%s]暂时没有已授权表，请到doris直连账号管理页面进行授权", realUserName);
+    }
+
     public HasNotAccessRightException(final String databaseName ) {
         super(XOpenSQLState.PRIVILEGE_NOT_GRANTED, 2, "你暂时没有【'%s'】数据库的权限，请先申请权限", databaseName);
     }

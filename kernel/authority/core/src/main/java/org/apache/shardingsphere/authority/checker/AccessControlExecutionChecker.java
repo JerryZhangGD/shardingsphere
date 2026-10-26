@@ -68,7 +68,15 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             Integer userLevel = 1;
             Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap = new HashMap<>();
             Integer level = user.get().getGrantee().getLevel();
-            String username = user.get().getGrantee().getUsername();
+            String realUserName = user.get().getGrantee().getUsername();
+            String username = realUserName;
+
+            //todo 如果是doris之恋账号功能模块申请的账号，使用的行列权限，脱敏配置是dap_工号这个相关账号的权限
+            if(realUserName.startsWith("dsp_")){
+                String workcode = realUserName.split("_")[1];
+                username = "dap_"+workcode;
+            }
+
             if(level!=null){
                 userLevel = level;
             }
@@ -117,6 +125,13 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                 filterIndicatorAssetOrApiAssetPermission(username,metaData,queryContext,assetId,assetType,themeDomainIdList,assetName,themeAnalysisIdList);
             } else {//todo 对数据表进行权限判断和脱敏设置
                 Map<String, Map<String, List<String>>> accessMap = getAccessMapFromQueryContext(username,metaData,queryContext,userLevel,sensitiveLevelMap);
+
+
+                //todo 先校验doris直联账号配置的授权列表
+                if(realUserName.startsWith("dsp_")){
+                    checkDorisAccountPermission(accessMap,metaData,queryContext,realUserName,username);
+                }
+
 
                 //将没有目录权限的过滤出来
                 Map<String, Map<String, List<String>>> hasNotCatalogPermissionAccessMap = filterHasNotCatalogPermissionAccessMap(username,metaData,accessMap);
@@ -194,6 +209,43 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                         }
 
                     });
+                }
+            }
+        }
+    }
+
+    private void checkDorisAccountPermission(Map<String, Map<String, List<String>>> accessMap, ShardingSphereMetaData metaData, QueryContext queryContext, String realUserName, String username) {
+        Map<String, List<String>> dbNameMapTableNameList = null;
+        ShardingSphereDatabase shardingSphereDatabase = metaData.getDatabase("ods");
+        if(shardingSphereDatabase!=null){
+            Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+            if(singleRule.isPresent()){
+                Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(username);
+                if(accessControlUser.isPresent()){
+                    List<String> tableFullNameList = accessControlUser.get().getTableFullNameList();
+                    if(tableFullNameList!=null&&tableFullNameList.size()>0){
+                        dbNameMapTableNameList = tableFullNameList.stream()
+                                .filter(s -> s != null && s.contains("."))
+                                .collect(Collectors.groupingBy(
+                                        s -> s.substring(0, s.indexOf('.')),
+                                        Collectors.mapping(s -> s.substring(s.indexOf('.') + 1), Collectors.toList())
+                                ));
+                    }
+                }
+            }
+        }
+        if(dbNameMapTableNameList == null || dbNameMapTableNameList.size() == 0){
+            throw new HasNotAccessRightException(realUserName,null,null,null);
+        }
+
+        for(Map.Entry<String, Map<String, List<String>>> entry:accessMap.entrySet()){
+            String databaseName = entry.getKey();
+            Map<String, List<String>> tableNameMapColumnList = entry.getValue();
+            for(Map.Entry<String,List<String>> entry1:tableNameMapColumnList.entrySet()){
+                String tableName = entry1.getKey();
+                List<String> permedTableNameList = dbNameMapTableNameList.get(databaseName);
+                if(permedTableNameList==null || !permedTableNameList.contains(tableName)){
+                    throw new HasNotAccessRightException(realUserName,databaseName,tableName);
                 }
             }
         }

@@ -20,6 +20,9 @@ package org.apache.shardingsphere.proxy.backend.mysql.handler.admin.executor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shardingsphere.authority.rule.AccessControlCatalogRule;
+import org.apache.shardingsphere.authority.rule.AccessControlRule;
+import org.apache.shardingsphere.authority.rule.AccessControlUser;
 import org.apache.shardingsphere.infra.database.core.metadata.database.system.SystemDatabase;
 import org.apache.shardingsphere.infra.database.core.type.DatabaseType;
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.QueryResult;
@@ -30,12 +33,14 @@ import org.apache.shardingsphere.infra.executor.sql.execute.result.query.impl.ra
 import org.apache.shardingsphere.infra.executor.sql.execute.result.query.type.memory.row.MemoryQueryResultDataRow;
 import org.apache.shardingsphere.infra.merge.result.MergedResult;
 import org.apache.shardingsphere.infra.merge.result.impl.transparent.TransparentMergedResult;
+import org.apache.shardingsphere.infra.metadata.database.ShardingSphereDatabase;
 import org.apache.shardingsphere.infra.metadata.database.schema.model.ShardingSphereTable;
 import org.apache.shardingsphere.infra.util.regex.RegexUtils;
 import org.apache.shardingsphere.proxy.backend.context.ProxyContext;
 import org.apache.shardingsphere.proxy.backend.handler.admin.executor.DatabaseAdminQueryExecutor;
 import org.apache.shardingsphere.proxy.backend.session.ConnectionSession;
 import org.apache.shardingsphere.sql.parser.statement.core.statement.dal.ShowTablesStatement;
+import org.locationtech.jts.util.CollectionUtil;
 
 import java.sql.Types;
 import java.util.*;
@@ -99,28 +104,41 @@ public final class ShowTablesExecutor implements DatabaseAdminQueryExecutor {
     }
 
     private Collection<ShardingSphereTable> filterByUserName(Collection<ShardingSphereTable> tables, String databaseName, String username) {
-        if(StringUtils.isEmpty(databaseName)||StringUtils.isEmpty(username)){
+        if(StringUtils.isEmpty(databaseName)||StringUtils.isEmpty(username)||!username.startsWith("dsp_")){
             return tables;
         } else {
-
-            return tables.stream().filter(shardingSphereTable -> {
-                List<String> tableNameList = new ArrayList<>();
-                boolean flag = false;
-                if(databaseName.equals("ods")){
-                    tableNameList.add("ODS_CRM_MARA_DF2");
-                    tableNameList.add("ODS_CRM_MARA_DF3");
-                    if(tableNameList.contains(shardingSphereTable.getName())){
-                        flag = true;
-                    }
-                } else if(databaseName.equals("dwd")){
-                    tableNameList.add("DWD_IT_MHBBQD_DF");
-                    tableNameList.add("DWD_IT_TABLE_COMMENT_DF");
-                    if(tableNameList.contains(shardingSphereTable.getName())){
-                        flag = true;
+            List<String> tableNameList = null;
+            ShardingSphereDatabase shardingSphereDatabase = ProxyContext.getInstance().getContextManager().getDatabase("ods");
+            if(shardingSphereDatabase!=null){
+                Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
+                if(singleRule.isPresent()){
+                    Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(username);
+                    if(accessControlUser.isPresent()){
+                        List<String> tableFullNameList = accessControlUser.get().getTableFullNameList();
+                        if(tableFullNameList!=null&&tableFullNameList.size()>0){
+                            Map<String, List<String>> dbNameMapTableNameList = tableFullNameList.stream()
+                                    .filter(s -> s != null && s.contains("."))
+                                    .collect(Collectors.groupingBy(
+                                            s -> s.substring(0, s.indexOf('.')),
+                                            Collectors.mapping(s -> s.substring(s.indexOf('.') + 1), Collectors.toList())
+                                    ));
+                            tableNameList = dbNameMapTableNameList.get(databaseName);
+                        }
                     }
                 }
-                return flag;
-            }).collect(Collectors.toList());
+            }
+            if(tableNameList == null || tableNameList.size() == 0){
+                return new ArrayList<>();
+            } else {
+                List<String> finalTableNameList = tableNameList;
+                return tables.stream().filter(shardingSphereTable -> {
+                    boolean flag = false;
+                    if(finalTableNameList.contains(shardingSphereTable.getName())){
+                        flag = true;
+                    }
+                    return flag;
+                }).collect(Collectors.toList());
+            }
         }
     }
 
