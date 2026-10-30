@@ -69,12 +69,14 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
             Map<String,Map<String,Map<String,SensitiveLevelColumnConfiguration>>> sensitiveLevelMap = new HashMap<>();
             Integer level = user.get().getGrantee().getLevel();
             String realUserName = user.get().getGrantee().getUsername();
-            String username = realUserName;
+            String username;
 
             //todo 如果是doris之恋账号功能模块申请的账号，使用的行列权限，脱敏配置是dap_工号这个相关账号的权限
             if(realUserName.startsWith("dsp_")){
                 String workcode = realUserName.split("_")[1];
                 username = "dap_"+workcode;
+            } else {
+                username = realUserName;
             }
 
             if(level!=null){
@@ -154,7 +156,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
                             if(!singleRule.isPresent()){
                                 throw new HasNotAccessRightException(databaseName);
                             }else {
-                                Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(user.get().getGrantee().getUsername());
+                                Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(username);
                                 if(!accessControlUser.isPresent()){
                                     throw new HasNotAccessRightException(databaseName);
                                 }else {
@@ -220,7 +222,7 @@ public final class AccessControlExecutionChecker implements SQLExecutionChecker 
         if(shardingSphereDatabase!=null){
             Optional<AccessControlRule> singleRule = shardingSphereDatabase.getRuleMetaData().findSingleRule(AccessControlRule.class);
             if(singleRule.isPresent()){
-                Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(username);
+                Optional<AccessControlUser> accessControlUser = singleRule.get().findAccessControlUser(realUserName);
                 if(accessControlUser.isPresent()){
                     List<String> tableFullNameList = accessControlUser.get().getTableFullNameList();
                     if(tableFullNameList!=null&&tableFullNameList.size()>0){
